@@ -633,11 +633,35 @@ def is_teleport_event?(event)
   return false
 end
 
+# A map's NAME, without loading the map. $MapFactory.getMap looks like a
+# lookup but LOADS the whole map into the factory's live set, where it gets
+# its events updated and its sprites drawn every frame until the factory
+# decides to drop it. The event scan asked for the name of every door's
+# destination and every exit, so busy maps like Keneph Jungle dragged several
+# other maps along with them - the progressive slowdown players reported.
+# The map list in $cache.mapinfos has every name and loads nothing.
+def a11y_map_name_only(map_id)
+  return nil if map_id.nil?
+  name = nil
+  begin
+    name = pbGetMapNameFromId(map_id) if defined?(pbGetMapNameFromId)
+  rescue Exception
+    name = nil
+  end
+  if name.nil? || name.to_s.empty?
+    begin
+      info = $cache.mapinfos[map_id]
+      name = info.name if info
+    rescue Exception
+      name = nil
+    end
+  end
+  (name.nil? || name.to_s.empty?) ? nil : name.to_s
+end
+
 def get_map_name(map_id)
     return "" if map_id.nil?
-    # Retrieve the map object from the factory using the ID
-    map = $MapFactory.getMap(map_id)
-    return map ? map.name : "Unknown Map"
+    a11y_map_name_only(map_id) || "Unknown Map"
   end
 
 def get_teleport_destination_name(event)
@@ -645,9 +669,7 @@ def get_teleport_destination_name(event)
   for command in event.list
     if command.code == 201 # Event command for "Transfer Player"
       map_id = command.parameters[1]
-      # Use the Map Factory to get the destination map object
-      destination_map = $MapFactory.getMap(map_id)
-      return destination_map.name if destination_map
+      return a11y_map_name_only(map_id)
     end
   end
   return nil # Return nil if it's not a teleport event
