@@ -1,0 +1,865 @@
+POKEMON DESOLATION - ACCESSIBILITY MODS
+=======================================
+
+Everything lives under patch\ - the same layout Reborn and Rejuvenation use -
+except ONE file: Data\Mods\AccessibilityLoader.rb. Desolation's engine only
+ever loads mods from Data\Mods (that single Dir[] line in ClientData.rb is its
+whole mod system), so one bootstrap must stay there; it is what loads
+patch\Mods. Delete it and the entire accessibility system goes dead.
+
+  Data\Mods\AccessibilityLoader.rb   the bootstrap - the one file outside patch
+  patch\Mods\                        the thirteen mods below, plus any of yours
+  patch\lib\                         beacon.dll and phonon.dll (Steam Audio)
+  patch\audio\                       beacon.wav, arrive.ogg, tile_sounds\
+  patch\biology.dat                  the biology database for the summary
+
+Your original mod is kept as Data\Mods\AccessibilitySpeech.rb.original-backup
+(no .rb ending, so the game ignores it). To revert everything: delete
+Data\Mods\AccessibilityLoader.rb and the patch\Mods folder, and rename the
+backup back to AccessibilitySpeech.rb in Data\Mods.
+
+  AccessibilityBag.rb             the bag: pockets, descriptions, quantities
+  AccessibilityBattle.rb          battles: messages, menus, moves, damage
+  AccessibilityBeacon.rb          the 3D Steam Audio guidance beacon
+  AccessibilityEvents.rb          selection screens built out of map events
+  AccessibilityMapFix.rb          one defensive guard on a base-game method
+  AccessibilityMenus.rb           every menu, list and screen outside battle
+  AccessibilityOptions.rb         the accessibility settings in the Options screen
+  AccessibilityPathfind.rb        event scanning, pathfinding and auto-walk
+  AccessibilityPathfindNames.rb   real names for the events in that list
+  AccessibilityQuests.rb          the quest log, and spoken quest updates
+  AccessibilitySpeech.rb          the speech engine (NVDA) and speaker names
+  AccessibilitySummary.rb         the Accessible Summary menu entry and K
+  AccessibilityWorld.rb           tile sounds
+
+
+KEYS
+----
+  F1   Repeat the last thing spoken
+  F2   Turn speech on or off
+  V    Say the map name, your coordinates, and the surface underfoot
+       (map only - silent in battle and during cutscenes)
+  Shift+B  Start or stop the 3D beacon guiding you to the selected target
+  K        On the party screen or in the PC: the Accessible Summary menu of
+           that Pokemon (also the LAST entry of its action menu, after Cancel)
+  N        In the bag: read the selected item's description
+           In a Pokedex entry: read the species' biology
+
+The pathfinder adds its own keys - H, I, J, K, L, N, O, P and F5, most of them
+with a Shift variant. They are listed under PATHFINDING AND AUTO-WALK below,
+and they are Reborn's keys unchanged.
+
+These were picked against a full audit of the game's own key bindings, so
+nothing was taken away from you. Z stays quicksave, M stays turbo, F6 to F12
+stay as they were. F5 is the one overlap, and it is explained below.
+
+
+SETTINGS
+--------
+They are in the game's own Options screen, at the end of the list, and the
+menus mod reads them out like anything else there:
+
+  Speech               the screen reader output itself (F2 does this too)
+  Speaker Names        saying who is talking before their line
+  Event Names          working out real names for EV027-style events
+  Tile Sounds          footsteps that say what you are walking on
+  Tile Sound Volume    0 to 100, on top of the game's own SE volume
+  Directional Beacon   whether Shift+B does anything
+  Spoken Directions    whether the beacon also says left / right / up / down
+  Battle Speech        battle messages, menus, moves and targets
+  Spoken Damage        exact damage numbers after every hit
+
+Spoken Directions has three settings rather than on/off, because "say it as
+well as the 3D sound" and "say it only when there is no 3D sound" are
+different things to want:
+
+  If no 3D sound   (default) speak only when Steam Audio could not start
+  Always           speak alongside the 3D beacon
+  Never            stay quiet even with no 3D beacon at all
+
+ONE ORDERING TRAP, WORTH KNOWING IF YOU ADD MORE
+
+Data/Mods loads alphabetically, so AccessibilityOptions ("O") loads BEFORE
+AccessibilitySpeech ("S"). A setting whose real home is another mod therefore
+cannot be applied when the options mod loads - that mod does not exist yet, the
+call quietly does nothing, and the speech mod then loads with speech ON no
+matter what you had chosen. A stored "off" would never survive a restart.
+
+So the bootstrap applies the settings again after it has loaded everything.
+That is what makes them stick. test_load_order checks it, because this was a
+real bug found by writing that check.
+
+They are stored in ONE new field on $Settings - a Hash, not six separate
+fields - so a Settings.dat saved before this mod existed simply comes back with
+nothing there and everything falls through to its default, switched on.
+
+Settings.dat is SEPARATE from your save games. If it ever went bad the game
+deletes it and rebuilds (ClientData.rb:44), costing you your options and
+nothing else. That is why adding to it is safe in a way that adding to a save
+file would not be.
+
+The game's own options screen applies every setting when you leave it but never
+writes them to disk, so these save themselves the moment they change.
+
+Adding rows to the option list is the game's OWN idiom - Options.rb:419 pushes
+the Unreal Time options on at runtime in exactly this way, guarded against
+double-adding, and so is this.
+
+
+BATTLES
+-------
+Modelled directly on Reborn 19.5's own Blindstep battle support - the tts
+calls in its Battle_Scene, its Battle_Inspect screen, and the community
+SpokenDamageAccessibility patch. Desolation ships the same engine with every
+one of those speech lines missing, so this mod puts them back from the
+outside.
+
+WHAT YOU HEAR
+
+  Battle messages     "Growlithe used Ember!", "It's super effective!" -
+                      queued in order, exactly the text on screen
+  The command menu    "What will Growlithe do?" then Fight, Bag, Pokemon or
+                      Run as you move the cursor
+  The fight menu      each move as you land on it: "Ember, Fire type, 24 of
+                      25 PP"
+  Targeting           the battler you are aiming at, in doubles
+  Mega, Ultra, Z      "Mega Evolution activated" when you press X
+  Damage              "Growlithe took 24 damage. 27 HP left." after every
+                      hit, from any source - moves, recoil, hazards, poison.
+                      "...and fainted." when it was fatal
+  Choices             Yes/No and move-learning prompts through the ordinary
+                      menu reading
+
+KEYS IN BATTLE (while on the command or fight menu)
+
+  K          quick readout of every active Pokemon: level, HP, status
+             condition, stat changes - plus your own ability and held item,
+             and for the enemy only the moves they have actually REVEALED,
+             the same rule Reborn's inspect uses
+  Shift+K    field readout: weather, field effect and its remaining turns,
+             screens and hazards on both sides, Trick Room
+  Q          YOUR side in full: types, HP, status, stat changes, ability,
+             item, and every move with exact PP - Reborn's L-button inspect
+  W          the ENEMY side in full: types, HP percent, status, stat
+             changes, revealed moves - Reborn's R-button inspect
+  Z          on the fight menu: the focused move's whole card - category,
+             power, accuracy, PP, and its full description
+
+Q and W are the game's own L and R buttons, the same two keys Reborn uses for
+its in-battle inspect, so the habit carries straight over.
+
+THE BEACON PAUSES FOR BATTLES. The looping 3D sound stops the moment a fight
+starts and starts itself again on your first step afterwards - the target is
+kept, so it is a pause, not a cancel.
+
+Yours reads exact HP; the enemy reads a percentage - again Reborn's rule: the
+game does not show you enemy HP numbers, so neither does the reader.
+
+Outside battle K belongs to the pathfinder; those keys are dead during a
+fight, so the muscle memory carries straight across.
+
+HOW IT DIFFERS FROM REBORN'S, AND WHY
+
+Reborn's battle speech is written INTO its engine - tts calls inside the
+Battle_Scene menu loops. A mod cannot edit a loop, so this hooks the points
+those loops already call every frame: the menu displays' index setters, the
+targeting updater, the frame updater (which is what carries the K keys), the
+message pipeline, and the HP reduction itself for damage.
+
+Reborn's full Inspect screen recalculates exact stats (its Battle_Inspect.rb
+defines pbCalcAttack and friends against Reborn's field internals). The K
+readout reports Desolation's own data instead - stat STAGES rather than
+recalculated numbers - which is accurate by construction and cannot drift
+from the engine.
+
+Both menu displays embed a command window that AccessibilityMenus would read
+generically ("Fight", bare move names). Those windows are marked with the
+menus mod's a11y_silent opt-out, so the richer battle announcements are the
+only voice - no double-speech.
+
+One deliberate speech choice: battle messages QUEUE (each waits for the last),
+because "used Ember", "super effective", "took 24 damage" is a sequence worth
+hearing whole; menu movement INTERRUPTS, because scrolling must stay
+responsive. Same split Reborn uses. And repeated messages are spoken again
+deliberately - "But it failed!" twice is two events, not an echo - which is
+why battle speech bypasses the speech mod's repeat-suppression while still
+respecting F2 and the Options switches.
+
+
+THE BAG
+-------
+The item list spoke already; this covers the rest. Switching pockets with LEFT
+and RIGHT announces the pocket name and re-reads the selected item. A
+registered key item says "registered" on its row. Sorting a pocket with X says
+so. Choosing a quantity - tossing, or moving items at a PC - speaks every
+number as you change it. And N reads the selected item's full description, in
+the bag and in the PC's item storage both. On a TM or HM, N also says who in
+the party CAN learn it, who already knows it, and who cannot - the same
+verdicts the sighted player gets as icons.
+
+The one silent thing left is the Y-key item-rearranging mode, which lives
+entirely in local variables the mod cannot see. Sorting with X covers the
+same need.
+
+
+THE QUEST LOG
+-------------
+Opened from the Pokegear as before; the menu and the quest list already spoke.
+Now the Main/Side tab announces itself when you flip it with LEFT and RIGHT,
+and opening a quest reads the whole page: the quest's name, its state, then
+every objective you have reached - finished ones prefixed "Done", unreached
+ones NOT read at all, so nothing is spoiled. Long quests read their page
+position, and LEFT and RIGHT turn pages.
+
+Quest progress on the map - the sliding "Quest Added / Completed" toast - is
+spoken the moment it appears: "Quest added: Restore the Beacon." When the game
+suppresses its own popup, the speech stays quiet too.
+
+
+LEARNING MOVES
+--------------
+When a Pokemon levels up and wants a fifth move, the "forget which move?"
+screen now reads every move the cursor lands on IN FULL: name, type, category,
+power, accuracy, remaining PP, and the description - and the move being
+learned is prefixed "New move" and carries no PP, because it has none yet. The
+same reading covers the summary screen's ordinary move page, in battle and
+out of it, so comparing moves is finally a real comparison.
+
+
+THE ACCESSIBLE SUMMARY
+----------------------
+Its own screen now, modelled on Reborn's pra-accessible-summary mod, and it
+speaks entirely for itself - every row is read directly, on open and on every
+arrow press, depending on nothing else.
+
+WHERE TO FIND IT: highlight any Pokemon and press C to open its action menu.
+The LAST entry - after Cancel - is "Accessible Summary". It is there on the
+party screen, in every PC box menu (Withdraw, Deposit and Move mode), and on
+the in-battle switch menu. K on the party screen or in the PC opens the very
+same thing directly.
+
+It opens a menu; C picks an entry, B goes back:
+
+  Everything               the full readout in one list: name and species,
+                           dex number, kind, types, level, gender, shiny,
+                           nature, status, HP, all five stats, happiness,
+                           EVs and IVs, ability and its description, held
+                           item and its description, every move in full with
+                           its description, the Pokedex entry, original
+                           trainer, met level, and the biology
+  Stats, EVs and IVs       one row per stat: its current total, its IV and
+                           its EV - plus the EV total out of 510 and the
+                           experience still needed for the next level
+  Base stats and abilities the SPECIES: typing, all six base stats with the
+                           base stat total, every ability the species can
+                           have, and the one this Pokemon actually has
+  Moves                    each move with type, category, power, accuracy
+                           and exact PP, each followed by its description
+  Biology                  the long prose description, sentence by sentence
+                           at your own pace
+  Export team to text file writes your whole party - Showdown style, with
+                           EVs, IVs, natures, items and moves - to a text
+                           file in the game folder, for sharing or notes
+
+Inside any list: arrow through the rows, every row is read; C repeats the
+row with its position ("Row 4 of 12"); B goes back. Eggs open a plain egg
+readout - steps to hatch, nothing spoiled.
+
+The stat order everywhere is Desolation's own (Speed LAST, not third, unlike
+standard Essentials - reading the arrays the standard way would silently swap
+three stats; a test pins the right order, and the export file re-maps it to
+the usual HP/Atk/Def/SpA/SpD/Spe writing order).
+
+BIOLOGY comes from the Reborn accessibility project's pokemon_biology.json -
+1,020 species, shipped pre-converted as patch\biology.dat so the game's
+stdlib-less Ruby never needs the json library. tools\build_biology.rb
+regenerates the .dat from the json. The same text is on N inside a Pokedex
+entry.
+
+Reborn's version adds its menu entry by copying the whole party-screen
+method, which breaks when the game updates. Here the menu is extended by one
+small wrapper instead - the new entry is appended AFTER Cancel so every
+index the game checks stays where it was - and it only appears while speech
+is on.
+
+The game's own graphics summary also still tries to speak page by page
+(LEFT/RIGHT through Info, Trainer Memo, Skills, EV and IV, Moves), and the
+move pages read every move in full - but the Accessible Summary above is the
+one built to be trusted.
+
+
+THE POKEDEX
+-----------
+The species list spoke already - name, seen and caught counts. Opening an
+entry reads the species, its kind, and the dex text; moving up and down
+between species inside the entry view reads each one. N reads the biology.
+
+
+TILE SOUNDS - THE LEGEND RPG SYSTEM
+-----------------------------------
+Sounds live in patch/audio/tile_sounds/<surface>/ - the same folder layout as
+the Legend RPG - and each surface folder holds:
+
+  step1.ogg .. step5.ogg   walking variants, picked at random
+  land.ogg                 landing after a ledge hop
+  fall.ogg                 the drop itself
+
+A random variant is chosen every step and the same one never plays twice in a
+row, so walking a corridor never turns into a metronome.
+
+land.ogg and fall.ogg NEVER play while walking. They belong to ledge hops
+only, so hearing one always means you just went down a ledge.
+
+Steps are flat - no panning, no pitch by direction. You know which way you are
+walking because you are holding the key; the step is there to say what is
+under your feet.
+
+HOW A SURFACE IS CHOSEN
+
+Two layers, in this order:
+
+  1. Real terrain wins. Grass, water, ice, sand, bridges, puddles and the rest
+     are tagged in the map data, and a tagged tile always sounds like what it
+     is, on every map.
+
+  2. Featureless ground takes the character of its map. Most indoor floors,
+     paths and cave bottoms share one "neutral" tag, so on their own they
+     would all sound the same. The map's NAME decides instead:
+
+       apartments, manors, rooms      hardwood
+       Pokemon Centers, hospitals     linoleum
+       labs, cafes, marts             tile
+       libraries and archives         carpet
+       gyms, prisons, arenas          concrete
+       caves, depths, tunnels         cave floor
+       mountains, rises, peaks        rocks
+       forests and groves             leaves
+       beaches, islands, dunes        sand
+       docks, ships, cruises          deck
+       councils, temples, chambers    marble
+       towers, bases, factories       metal
+       portals and dreamscapes        synthetic
+       ruins                          rubble
+       rooftops                       roof
+       sewers                         sewer
+       cities and towns               pavement
+       routes and passages            dirt
+       anything else                  generic
+
+Of Desolation's 480 maps, 440 now get a fitting surface; the 40 left on
+generic are the unnamed ones (???, MAP393, SURGE), where generic is right.
+
+The surfaces are fixed in the mod and there is no table to edit, so nothing
+can be changed by accident.
+
+Footstep volume is Options -> Tile Sound Volume (default 70), scaled again by
+the game's own SE volume setting. An older install with the sounds still at
+Audio/tile_sounds keeps working; patch/audio/tile_sounds wins when both exist.
+
+Walls already have a sound: the game plays Audio/SE/bump.ogg when you walk
+into one.
+
+The 306 surface folders the mapping never reaches were deleted - the library
+went from 39 MB to 5 MB. The full 339-surface set still lives in the Legend
+RPG at E:/legend_rpg_NVGT/client/assets/audio/sounds/tile_sounds if any of
+them are ever wanted back.
+
+
+SPEAKER NAMES
+-------------
+Desolation marks who is talking with a face portrait, which tells a blind
+player nothing. Some lines name the speaker in the text ("SCARLETT: ..."), but
+continuation lines and many short exchanges do not.
+
+The mod now says the name when the speaker CHANGES:
+
+  "Scarlett. Damn it, where did I put it..."
+
+and stays quiet for their following lines, so a long speech is not interrupted
+by the same name over and over. If the writers already put the name in the
+line, nothing is added. Narration in between resets it, so the next character
+to speak is named again.
+
+The portrait-to-name table was not typed by hand - it was recovered by
+scanning every map's dialogue for lines carrying both a portrait code and a
+spoken name, then taking the name each portrait agreed on: 75 portraits, 25
+characters, nearly all at 100% agreement across hundreds of lines. Thirteen
+portraits never name themselves anywhere in the game; those simply get no
+prefix.
+
+
+PATHFINDING AND AUTO-WALK
+-------------------------
+Ported from the Reborn accessibility mods pra-pathfind and pra-walk
+(github.com/fclorenzo/pkreborn-access), taken from the NEWER copy that lives in
+E:/Guide/Reborn-19.5.0-windows/patch/Mods. Keys and behaviour are Reborn's, so
+the muscle memory carries between the two games.
+
+  O / I      cycle the event filter forwards / backwards
+  H          cycle HM pathfinding: off, surf, surf and waterfall
+  Shift+H    toggle sorting the event list by distance
+  F5         refresh the event list
+  Shift+F5   toggle auto-refreshing it when you change map (on by default)
+  J / L      select the previous / next event
+  Shift+J    toggle auto-walk
+  Shift+L    create a point of interest
+  K          say the selected event again
+  Shift+K    rename the selected event
+  P          pathfind to the selected event
+  Shift+P    say the selected event's coordinates
+  N          say the selected event's notes
+  Shift+N    add a note to the selected event
+
+The filters O and I cycle through:
+
+  all, connections, npcs, items, merchants, signs, hidden items, notes,
+  points of interest
+
+"connections" is worth knowing about: as well as real doors, the mod now scans
+all four map edges and turns every tile that leads to another map into a
+selectable target named after the map it goes to. So you can select "Next Door"
+and press P to walk to the border, rather than having to find the edge tile
+yourself.
+
+"notes" shows only the events you have written a note on, across every
+category - a personal shortlist for the map you are standing in.
+
+POINTS OF INTEREST
+
+Shift+L asks for an X, a Y, a name and an optional note. Leave the coordinates
+blank to use where you are standing. The point then behaves like any other
+event: it appears in the list, K reads it, P walks to it, N reads its note.
+
+Points of interest and renamed events are both saved to pra-custom-names.txt
+next to the game, one per line, in the format
+
+  map_id;map_name;x;y;name;notes;type
+
+so you can edit the file by hand between sessions. Do not put a semicolon in a
+name or a note. Naming something "ignore" hides it from the list.
+
+ONE KEY TO WATCH
+
+  F5   Desolation uses F5 to skip messages and cut scenes, and it is also the
+       first of the three registered-item hotkeys. Refreshing the event list at
+       the same time is harmless, but you will hear both. Say the word and I
+       will move it - nothing else on this list collides with the game.
+
+This newer version drops the old T and Q coordinate markers; the points of
+interest above replace them, and that frees Q, which used to collide with the
+game's own L button.
+
+WHAT THE PORT CHANGED
+
+Three things, and nothing else:
+
+  1. tts() is redirected to this game's speech engine. Reborn provides tts()
+     and Desolation does not, so defining it once meant every one of the mod's
+     ~200 announcement call sites could stay byte-identical to Reborn's.
+  2. The four alias lines and the CUSTOM_NAMES_FILE constant are wrapped in
+     re-entry guards, because Desolation reloads Data/Mods on an F12 soft reset
+     and an unguarded alias would chain onto itself and recurse.
+  3. The mod restores its own settings if it finds them unset. Desolation loads
+     a save by handing back a Marshal'd Game_Player (Scripts/Load.rb:679), and
+     Marshal never calls initialize, so on a save made before the mod existed
+     the auto-refresh and the distance sorting would have stayed off forever.
+
+No pathfinding, key binding, filter or announcement was altered. Reborn's lava
+terrain does not exist here; the original already guards that check, so it
+simply never fires.
+
+To re-port after an upstream change, run tools/port_pathfind.rb - it applies
+those three edits to a fresh copy of the two Reborn files and nothing more.
+
+ONE THING THAT DOES NOT CARRY OVER
+
+Auto-walk suppresses wild encounters by zeroing the encounter rate variable.
+Desolation only honours that variable while its FirstUse switch is set
+(Scripts/Encounters.rb:128), so auto-walking through tall grass here can still
+start a battle. The route survives it; you just have to finish the fight.
+
+
+MODS IN patch/Mods
+------------------
+ALL mods live in patch\Mods now, exactly like Reborn and Rejuvenation, loaded
+by the bootstrap in Data\Mods. The loader makes two passes: every
+Accessibility*.rb first, alphabetically, then everything else, alphabetically -
+so your own mods always load AFTER the accessibility system they might build
+on, no matter what they are named. If the patch folder is missing entirely, a
+warning file named ACCESSIBILITY_NOT_LOADED.txt appears in the game root
+saying so, because the alternative is a game that is simply, silently, mute.
+
+IT ISOLATES FAILURES, WHICH THE GAME'S OWN LOADER DOES NOT
+
+Desolation's loader is unguarded: one mod that raises at load time takes the
+whole game down with a crash dialog, and nothing tells you which file did it.
+This one loads each file separately, so a mod that fails is skipped and named
+in patch/Mods/load_log.txt while everything else still runs.
+
+That matters more here than it sounds. Mods written for Reborn reach for
+classes Desolation does not have - PokemonOptions, EnumOption,
+pbAccessibilitySEPlay - so dropping one straight in and watching it fail is the
+NORMAL case, not the exceptional one. It should cost you a line in a log, not
+your session. Syntax errors are caught the same way.
+
+Read patch/Mods/load_log.txt after adding anything. It is rewritten on every
+start and lists what loaded, what did not, and why.
+
+
+THE DIRECTIONAL BEACON
+----------------------
+Pick a target with J and L, then press Shift+B. A sound is placed in true 3D
+toward your NEXT STEP along the walkable route, and re-steers as you walk. It
+gets louder as you close in, and a chime plays when you arrive. Shift+B again
+switches it off.
+
+It follows the ACTUAL route around walls. It is not a compass pointing through
+them, so following it never walks you into a corner.
+
+  Shift+B    start or stop guiding to the selected target
+
+This is real binaural audio, not stereo panning: beacon.dll driving Valve's
+Steam Audio through phonon.dll, called from Ruby with fiddle. You get genuine
+left/right, front/back and distance.
+
+BEHIND YOU SOUNDS LOWER AND DULLER
+
+Generic HRTF renders front and back weakly, so the wrapper adds its own rear
+cue: nothing across the whole front and both sides, ramping to full only
+directly behind. Behind you the pitch drops, the sound muffles, and it drops a
+little in volume. PITCH_RANGE and BACK_DAMP at the top of
+AccessibilityBeacon.rb control how strong that is - raise them if it is still
+too subtle.
+
+IT IS A COMPASS, NOT A HEAD - AND THAT IS DELIBERATE
+
+The beacon is screen-fixed, exactly like Reborn's: north on the map is always
+"in front", south is always "behind" - lower and duller - whichever way your
+character sprite faces. Learn the mapping once and it never shifts.
+
+A head-relative version (rotating the sound by your sprite's facing) was tried
+and REMOVED at the player's request. In this game walking always turns your
+sprite, so the beacon swung with every step and every turn, and a cue that
+keeps moving on its own is worse than one that holds still. If you are reading
+this wondering whether to "fix" the unrotated maths: it is not an oversight,
+and there is a test that pins it.
+
+  ruby tools/check_beacon_audio.rb
+
+That walks the beacon all the way around you - front, right, behind, left - so
+you can hear the south-side pitch drop.
+
+  patch/lib/beacon.dll     the wrapper
+  patch/lib/phonon.dll     Steam Audio 4.8.1
+  patch/audio/beacon.wav   the beacon sound that ships with the mod
+
+The DLLs were copied from the Reborn install and checked byte for byte.
+
+CHANGING THE BEACON SOUND
+
+The shipped sound is patch/audio/beacon.wav. To use your own without touching
+the shipped one, drop it at Data/audio/beacon.wav (or .ogg, or .mp3) - that
+location is FIRST in the search order, so it wins whenever it exists.
+
+OGG WORKS, BUT NOT DIRECTLY - AND THIS IS WORTH UNDERSTANDING
+
+The GAME plays .ogg perfectly well; every sound Desolation ships is .ogg. The
+BEACON is a different audio path entirely. beacon.dll is built on miniaudio,
+which decodes WAV and MP3 but not OGG Vorbis. Pointed at an .ogg, beacon_init
+returns -4 and says so in as many words:
+
+  could not decode beacon sound: ... (WAV or MP3 only - OGG is not supported)
+
+That is the DLL's decoder, not a choice made here. Rebuilding it with Vorbis
+support would need a C compiler, and there is not one on this machine.
+
+So the mod converts for you. If the only beacon sound it can find is an .ogg,
+it runs ffmpeg once, writes Data/audio/beacon.wav beside it, and uses that.
+After the first time the .wav is found directly and it never runs again. You
+can also do it yourself:
+
+  ruby tools/set_beacon_sound.rb "some sound.ogg"
+  ruby tools/set_beacon_sound.rb --restore
+
+If ffmpeg is not available, beacon_error.txt says so plainly and the beacon
+speaks directions instead of going quiet.
+
+MONO MATTERS. A stereo file already carries its own left and right, which
+fights the HRTF that is meant to be placing the sound for you. Everything is
+converted to mono, 48000 Hz, 16-bit PCM - exactly what the decoder wants, so
+nothing is resampled or downmixed at load.
+
+The search order is Data/audio, patch/lib, patch/audio, Audio, then the game
+folder. First hit wins.
+
+TO CHECK IT WORKS
+
+  ruby tools/check_beacon_audio.rb
+
+Run that from the game folder. It loads the real engine and sweeps a beacon
+from in front of you to your right. This has been run and it works - though it
+uses the Ruby on your PATH, not the interpreter inside the game, so it proves
+the DLLs and the paths rather than the game's own Ruby.
+
+The game writes its own verdict to beacon_error.txt the first time you press
+Shift+B. That file is the real answer, and the first thing to read if the
+beacon is not behaving.
+
+WHAT STEAM AUDIO DOES AND DOES NOT COVER HERE
+
+Read this before planning anything else around it.
+
+Desolation ships NO spatial audio of its own. Its Audio module takes a
+"position" argument, but that is a seek offset into the track for resuming BGM,
+not a place in space. Everything spatial in this game is Steam Audio, and Steam
+Audio arrived with this mod.
+
+beacon.dll renders exactly ONE source. Its whole state - one IPLBinauralEffect,
+one audio device, one decoded sound, one direction, one gain - is a set of file
+static globals in beacon.c. It plays one looping sound at one direction, and
+that is the beacon.
+
+So anything wanting SEVERAL sounds placed in space at once - spatialised NPCs,
+positional ambience, footsteps of things around you - needs a rebuilt DLL with
+a multi-source API. The C source is at
+E:/Guide/Reborn-19.5.0-windows/beacon_src/beacon.c and the change is not large
+(an array of effects and playheads instead of single globals), but it needs a
+C compiler, and there is none on this machine right now.
+
+THE fiddle/import PROBLEM, AND HOW IT IS SOLVED
+
+This nearly sank the whole thing, and the game's own log is what caught it.
+
+Running the game produced these two lines:
+
+  startup probe | ruby 3.1.0 x64-mingw32 | fiddle: yes | files: all present
+  Steam Audio load failed (LoadError: cannot load such file -- fiddle/import)
+
+So `require 'fiddle'` works, but `require 'fiddle/import'` does not. Desolation
+has fiddle compiled into x64-msvcrt-ruby310.dll and ships no stdlib tree, and
+only SOME of fiddle's Ruby-level files came along with it:
+
+  present : fiddle.so, fiddle/closure, fiddle/function, fiddle/handle,
+            fiddle/memory_view
+  MISSING : fiddle/import, fiddle/cparser, fiddle/struct, fiddle/value,
+            fiddle/pack, fiddle/types, fiddle/version
+
+Reborn's version of the beacon uses Fiddle::Importer, whose
+
+  extern "void beacon_set_direction(float, float, float)"
+
+DSL lives in the missing fiddle/import.rb. Reborn gets away with it because it
+ships a full stdlib folder; Desolation does not.
+
+But Fiddle::Importer is only a convenience wrapper. Fiddle::Handle and
+Fiddle::Function are C-level and always there, along with TYPE_FLOAT, so the
+mod now binds through them directly:
+
+  Fiddle::Function.new(handle["beacon_set_direction"],
+    [Fiddle::TYPE_FLOAT, Fiddle::TYPE_FLOAT, Fiddle::TYPE_FLOAT],
+    Fiddle::TYPE_VOID)
+
+That needs no .rb files at all, passes floats correctly, and works in both
+games. Verified end to end: init returns 0 and the beacon sweeps from in front
+of you to your right.
+
+The startup probe now checks for Handle, Function and TYPE_FLOAT rather than
+just bare fiddle, because bare fiddle was exactly the thing that said yes while
+the beacon still failed.
+
+AND THEN A SECOND ONE, FOUND THE SAME WAY
+
+With that fixed the game logged something new:
+
+  NoMethodError: undefined method `win32_last_error=' for Fiddle:Module
+
+Ruby 3.1's fiddle calls BACK into Ruby after every FFI call, to record the OS
+error - and Fiddle.win32_last_error= lives in the pure-Ruby fiddle.rb that
+Desolation does not ship. So the DLLs, the paths and the C ABI were all fine;
+fiddle simply could not finish its own bookkeeping, and the first call into
+beacon_init died.
+
+The mod now supplies those methods itself when they are missing -
+win32_last_error, win32_last_socket_error and last_error, readers and writers,
+copied verbatim from fiddle.rb down to the thread-local key names - and leaves
+a Ruby that already has them untouched.
+
+Worth knowing if you ever debug this again: it CANNOT be reproduced on Ruby
+3.2, which does not make that callback. Only the game's own 3.1 does. The log
+file is the only place this was ever visible.
+
+Launch the game and read beacon_error.txt. "fiddle: yes" plus "Steam Audio HRTF
+beacon ready" means it is working. The probe opens no DLLs and no audio device,
+so it costs nothing at startup.
+
+
+THE ARRIVAL CHIME
+
+Drop arrive.ogg (or .wav, or .mp3) in Data/audio or patch/audio and it plays
+when you reach the target, instead of the game's own Entering Door sound.
+
+This one MAY be .ogg. It goes through the GAME's audio engine, which plays
+Vorbis perfectly well - it is only the beacon LOOP that goes through
+beacon.dll, and only that one which has to be WAV or MP3. Two different audio
+paths, two different rules.
+
+
+IF STEAM AUDIO CANNOT START
+
+The beacon SPEAKS the direction instead - "left", "right", "up", "down" - only
+when it changes, and on a slow timer that speeds up as you get closer. Reborn
+falls back to panned footstep sounds there, but Desolation has neither those
+sounds nor any way to pan, so speech is the one thing that stays useful.
+
+That behaviour is now Options -> Spoken Directions, set to "If no 3D sound".
+Set it to "Always" to hear both, or "Never" to silence it entirely.
+
+WHAT WAS CHANGED FROM REBORN'S VERSION
+
+Reborn puts an on/off switch in Options, Accessibility. That needs classes
+Desolation does not have, and it stores the setting in the saved settings
+object, which is not something worth risking a save file over. Shift+B is the
+switch instead, and a beacon you are not using costs nothing.
+
+
+NAMES FOR THE EVENT LIST
+------------------------
+Of the 8,959 events the pathfinder lists across Desolation's 479 maps, 7,083 -
+79% of them - were still called EV027, EV016 and so on, because that is the
+name RPG Maker generates and the writers only renamed about a fifth of their
+events. Four times out of five, cycling with J and L told you nothing.
+
+Every one of those events still knows what it IS, so the mod reads that and
+works out a name:
+
+  sprite "CustomScarlett"         Scarlett
+  dialogue "GARRET: Took you..."  Garret
+  a portrait code \ff[07a]        Rosetta      (via the speaker table)
+  Transfer Player to map 84       Door to Celeste City
+  sprite "trchar018"              Hiker        (via the game's trainer types)
+  sprite "pkmn_growlithe"         Growlithe
+  pbItemBall(:POTION)             Item ball: Potion
+  pbPokemonMart                   Shop counter
+  no sprite, but it talks         Sign: Sunshell Town Teleporter
+  a sprite, silent, no name       Person
+  invisible, moves you            Move trigger
+  invisible, sets something       Trigger tile
+
+Every event in the game now gets a name: 8,959 of 8,959.
+
+A trainer with no name of their own is described by TYPE - Hiker, Beauty, Bug
+Catcher, Crush Girl, Poké Maniac - because that is what Desolation's own
+trainer data calls them. If they talk about exactly one Pokémon, that is added:
+"Psychic, about Rattata". Two or more and it is dropped, because a list of
+species is not a description.
+
+None of this is invented. It all comes from the game's own data - the trainer
+types, the species list, the map names, and the event's own commands - so it
+cannot disagree with what is actually there.
+
+IT ONLY EVER FILLS IN BLANKS
+
+A name you set yourself with Shift+K wins. A name Desolation's writers gave the
+event wins. This speaks up only when the alternative was "EV027".
+
+WHY IT WORKS OUT THE NAME AS YOU PLAY
+
+A generated name file has to be keyed on coordinates, and the pathfinder looks
+events up by where they are NOW. About a thousand event pages in Desolation use
+random movement, so in a file every wandering NPC would walk off its tile and
+lose its label. Working it out on the spot follows them, and can never go stale.
+
+THE FILE, IF YOU WANT IT ANYWAY
+
+  ruby tools/generate_event_labels.rb            just report what it would do
+  ruby tools/generate_event_labels.rb --write    write pra-custom-names.txt
+  ruby tools/generate_event_labels.rb --sample 40  show more examples
+
+This has been run, so pra-custom-names.txt already holds all 7,083 names and
+you can open it in a text editor and change any of them. It is not needed for
+the names to work - the mod does that on its own - it is there so the whole set
+is something you can read and edit in one place.
+
+Re-running it KEEPS every line already in the file, so your edits survive.
+
+The generator loads the mod and calls it, rather than reimplementing the logic,
+so the file can never say something different from what you hear.
+
+
+THE ONE NON-ACCESSIBILITY FILE
+------------------------------
+AccessibilityMapFix.rb is not an accessibility feature. It keeps the prefix
+only so that "delete the Accessibility*.rb files to revert everything" stays
+true.
+
+It guards one line in the base game. PokemonMapMetadata#updateMap, which
+restores where NPCs were standing when you load a save, sets an event's
+"through" flag OUTSIDE the check that the entry belongs to the map you are on
+(Scripts/Map.rb:70). Given an entry from another map it either crashes on nil,
+or silently overwrites the through flag of whatever unrelated event happens to
+share that number on your current map - which makes an NPC walk through walls,
+or makes one block a doorway.
+
+BE CLEAR ABOUT WHAT THIS IS: insurance, not a repair of something breaking
+today. It is NOT reachable in normal play. Every path that changes the map
+fires Events.onMapChange, and that handler (Scripts/Field.rb:1818) empties the
+moved-event list - walking through a door, crossing a map seam, and loading a
+save all do it. So by the time updateMap runs, the list only ever holds entries
+for the map you are actually standing on, and the unguarded line does the right
+thing by accident.
+
+The route that is NOT proven safe is a legacy save: DataConversion.rb:47 loads
+that data straight out of an old save file, whatever shape it is in. That is
+the case this covers.
+
+The fix moves the assignment inside the check that was already there, and
+changes nothing else. test_mapfix.rb runs the original and the fixed method
+side by side over every input the game can produce and asserts the results are
+identical, so this is not taken on trust.
+
+
+TESTS
+-----
+The mods have a test suite that runs without launching the game:
+
+  cd accessibility_tests
+  ruby test_a11y.rb ../patch/Mods                                 119 checks
+  ruby test_battle.rb ../patch/Mods/AccessibilityBattle.rb         64 checks
+  ruby test_bag.rb ../patch/Mods/AccessibilityBag.rb               17 checks
+  ruby test_quests.rb ../patch/Mods/AccessibilityQuests.rb         19 checks
+  ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb      125 checks
+  ruby test_pathfind.rb ../patch/Mods/AccessibilityPathfind.rb     43 checks
+  ruby test_names.rb ../patch/Mods/AccessibilityPathfindNames.rb   55 checks
+  ruby test_beacon.rb ../patch/Mods/AccessibilityBeacon.rb         71 checks
+  ruby test_options.rb ../patch/Mods/AccessibilityOptions.rb       45 checks
+  ruby test_mapfix.rb ../patch/Mods/AccessibilityMapFix.rb         21 checks
+  ruby test_patchloader.rb ../Data/Mods/AccessibilityLoader.rb     21 checks
+  ruby test_load_order.rb ..                                       17 checks
+
+test_a11y covers menus, options, the party and storage screens, event
+selectors, tile sounds, the zone readout and speaker names.
+
+test_pathfind has its own harness because the pathfinder needs a much richer
+environment than the other mods - a map factory, terrain tags, real event
+command lists - and it drives the whole feature: the map scan, the connection
+edges, creating a point of interest and reading it back off disk, the HM
+toggle and a step of auto-walk.
+
+test_mapfix runs the original base-game method and the guarded one side by side
+over the same inputs, so the claim that nothing else changed is checked rather
+than asserted.
+
+test_names checks the label derived for each kind of event, and - just as
+important - that it stays quiet where a name already exists.
+
+test_beacon runs the beacon from accessibility_tests, where it cannot reach the
+real DLLs, so it exercises the guidance logic and the spoken fallback without
+loading a 53 MB audio engine or making noise.
+
+test_load_order boots the stack the way the GAME does - Data/Mods first, which is just the bootstrap, then patch/Mods through it - all, which is
+alphabetical. That order puts Speech LAST, and a mod that touches
+AccessibilitySpeech at load time crashes the game on startup. That has already
+happened once for real, and none of the other harnesses can see it, because
+they each load one mod at a time.
+
+Run all twelve after any edit.

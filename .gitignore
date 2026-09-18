@@ -1,0 +1,6 @@
+# Files the mods write at runtime, never source
+load_log.txt
+beacon_error.txt
+ACCESSIBILITY_NOT_LOADED.txt
+AccessibilitySpeech.log
+*'s team.txt
