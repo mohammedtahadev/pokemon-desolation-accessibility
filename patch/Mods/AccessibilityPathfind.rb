@@ -873,20 +873,50 @@ def populate_event_list
         { range: (0...h), axis: :x, val: w-1, cx: 1,  cy: 0,  dir: 6 }  # East
       ]
 
+      # PERFORMANCE, and the real Keneph Jungle bug: this used to call
+      # $MapFactory.getNewMap for EVERY border tile. getNewMap calls getMap,
+      # which LOADS the connected map into the factory - and the factory then
+      # updates every loaded map's events on every frame, forever. On a
+      # 100x65 map with big jungle neighbors that was a 40-second freeze on
+      # entry and a permanent crawl across the whole area. The connection
+      # TABLE answers the same question with pure arithmetic; nothing loads.
+      # (getMapDims reads a map file once to learn its size, then caches.)
+      my_conns = []
+      begin
+        if defined?(MapFactoryHelper) && MapFactoryHelper.respond_to?(:getMapConnections)
+          my_id = $game_map.map_id
+          for conn in (MapFactoryHelper.getMapConnections || [])
+            next if conn[0] != my_id && conn[3] != my_id
+            if conn[0] == my_id
+              dims = (MapFactoryHelper.getMapDims(conn[3]) rescue nil)
+              my_conns.push([conn[3], conn[4] - conn[1], conn[5] - conn[2], dims]) if dims
+            else
+              dims = (MapFactoryHelper.getMapDims(conn[0]) rescue nil)
+              my_conns.push([conn[0], conn[1] - conn[4], conn[2] - conn[5], dims]) if dims
+            end
+          end
+        end
+      rescue Exception
+        my_conns = []
+      end
+
       for edge in edges
+        break if my_conns.empty?
         for i in edge[:range]
           x = (edge[:axis] == :x) ? edge[:val] : i
           y = (edge[:axis] == :y) ? edge[:val] : i
-          
-          map_info = $MapFactory.getNewMap(x + edge[:cx], y + edge[:cy])
-          
-          # Fix: Handle both Map Object and Map ID return types
+
+          # The same answer getNewMap would give for the tile just past this
+          # border tile, without loading anything.
+          nx = x + edge[:cx]
+          ny = y + edge[:cy]
           connected_id = nil
-          if map_info
-            if map_info[0].is_a?(Game_Map)
-              connected_id = map_info[0].map_id
-            else
-              connected_id = map_info[0]
+          for cid, offx, offy, dims in my_conns
+            tx = nx + offx
+            ty = ny + offy
+            if tx >= 0 && tx < dims[0] && ty >= 0 && ty < dims[1]
+              connected_id = cid
+              break
             end
           end
 

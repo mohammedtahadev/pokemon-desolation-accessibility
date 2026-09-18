@@ -86,11 +86,24 @@ class MapFactoryStub
   def isPassable?(m, x, y, ev = nil); true; end
   def getMap(id); id == 2 ? OtherMap.new : nil; end
   def getNewMap(x, y)
+    # The edge scan must NEVER come through here any more: getNewMap loads
+    # whole neighbor maps into the factory, which was the Keneph Jungle
+    # freeze. The scan now reads the connection table below instead.
+    $get_new_map_calls = ($get_new_map_calls || 0) + 1
     id = @connections[[x, y]]
     id ? [id, x, y] : nil
   end
 end
 class OtherMap; def map_id; 2; end; def name; "Next Door"; end; end
+
+# The connection TABLE, the pure-data source the edge scan reads now:
+# [mapA, ax, ay, mapB, bx, by] means point (ax,ay) on A is (bx,by) on B.
+module MapFactoryHelper
+  def self.getMapConnections; $map_connections || []; end
+  def self.getMapDims(id); $map_dims && $map_dims[id]; end
+end
+$map_connections = []
+$map_dims = {}
 
 $MapFactory     = MapFactoryStub.new
 $game_map       = Game_Map.new
@@ -196,7 +209,11 @@ mart = Game_Event.new(4, "Clerk", 2, 2, 0,
                       [Cmd.new(SCRIPT, ["pbPokemonMart([1,2])"]), Cmd.new(DONE)])
 mart.character_name = "NPC 02"
 $game_map.events = { 1 => joy, 2 => sign, 3 => door, 4 => mart }
-$MapFactory.connections = { [10, -1] => 2 }   # a north-edge connection to map 2
+# Map 2 sits north of this one: our (0,0) coincides with its (0,15), so the
+# tiles just past our north edge land on its bottom row.
+$map_connections = [[1, 0, 0, 2, 0, 15]]
+$map_dims = { 2 => [MAP_W, 15] }
+$get_new_map_calls = 0
 
 scan_ok = true
 begin
@@ -211,6 +228,8 @@ check PraSession.mapevents.is_a?(Array) && !PraSession.mapevents.empty?,
       "the scan found something to select"
 check PraSession.mapevents.any? { |e| e.respond_to?(:type) && e.type == :connection },
       "the map-connection scan produced a virtual edge event"
+check $get_new_map_calls == 0,
+      "and it NEVER called getNewMap - loading neighbor maps per border tile was the Keneph Jungle freeze"
 
 # ----------------------------------------------------------- announcing
 $spoken = []
