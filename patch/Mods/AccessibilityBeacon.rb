@@ -527,10 +527,38 @@ class Game_Player < Game_Character
     end
 
     PraBeacon.recalc = PraBeacon.recalc.to_i + 1
-    if PraBeacon.route_cache.nil? || PraBeacon.last_pos != [@x, @y] || PraBeacon.recalc >= 60
+    moved = (PraBeacon.last_pos != [@x, @y])
+    rc = PraBeacon.route_cache
+
+    # Walking ALONG the route costs nothing: stepping onto its next tile just
+    # consumes that tile. The full search only runs when the route is stale,
+    # missing, or you wander off it. Before this, every single step re-ran
+    # A* - and with no path, several exhausted searches PER STEP, which froze
+    # event-dense maps like Keneph Jungle (a player report).
+    if rc && !rc.empty? && moved && rc[0].x == @x && rc[0].y == @y
+      rc.shift
+      PraBeacon.last_pos = [@x, @y]
+      PraBeacon.recalc   = 0
+      moved = false
+    end
+
+    need = if PraBeacon.route_cache.nil?
+             true
+           elsif PraBeacon.no_path_announced
+             # No path last time. Standing still cannot create one, so only
+             # retry once the player has moved, and at most every 2 seconds.
+             moved && PraBeacon.recalc >= 120
+           elsif PraBeacon.route_cache.empty?
+             true
+           else
+             moved || PraBeacon.recalc >= 60
+           end
+    if need
       PraBeacon.route_cache = pra_beacon_route
       PraBeacon.last_pos    = [@x, @y]
       PraBeacon.recalc      = 0
+    elsif moved
+      PraBeacon.last_pos = [@x, @y]
     end
     route = PraBeacon.route_cache
     if route.nil? || route.empty?

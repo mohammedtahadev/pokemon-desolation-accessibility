@@ -425,6 +425,67 @@ PraBeaconAudio.instance_variable_set(:@available, false)
 PraBeaconAudio.instance_variable_set(:@fn, nil)
 PraBeacon.reset
 
+# ── The tick must be cheap: the Keneph Jungle slowdown ─────────────────────
+# Re-running A* on every step - several exhausted searches per step with no
+# path - froze event-dense maps. Walking ALONG a route now consumes it, and
+# a no-path state retries only after moving, at most every two seconds.
+$route_calls = 0
+def player.pra_beacon_route
+  $route_calls += 1
+  super
+end
+
+N = Game_Player::Node
+PraBeacon.reset
+PraBeacon.active = true
+PraBeacon.target = { map_id: 1, x: 9, y: 5, candidates: [], name: "Door" }
+PraBeacon.route_cache = [N.new(6, 5), N.new(7, 5), N.new(8, 5)]
+player.x = 5; player.y = 5
+PraBeacon.last_pos = [5, 5]
+PraBeacon.recalc = 0
+player.x = 6                               # stepped exactly onto route[0]
+player.pra_beacon_tick
+check_eq $route_calls, 0, "stepping onto the route's next tile runs NO search"
+check_eq PraBeacon.route_cache.length, 2, "the tile is consumed from the cached route"
+
+Game_Player.route = [[7, 6]]
+player.y = 6                               # wandered off the route
+player.pra_beacon_tick
+check_eq $route_calls, 1, "wandering off the route recomputes once"
+
+# No path: the storm is what froze the jungle - assert it cannot happen.
+Game_Player.route = :none
+PraBeacon.reset
+PraBeacon.active = true
+PraBeacon.target = { map_id: 1, x: 40, y: 40, candidates: [], name: "Far" }
+player.x = 5; player.y = 5
+$spoken = []
+$route_calls = 0
+player.pra_beacon_tick
+check_eq $route_calls, 1, "the first tick searches"
+check $spoken.any? { |s| s =~ /No path/ }, "and announces no path, once"
+
+player.x = 6
+player.pra_beacon_tick
+check_eq $route_calls, 1, "one step later it does NOT search again - this was per-step before"
+
+130.times { player.pra_beacon_tick }       # standing still for over 2 seconds
+check_eq $route_calls, 1, "standing still never retries - no path will not appear under your feet"
+
+$spoken = []
+player.x = 7                               # moved, and 2 seconds have passed
+player.pra_beacon_tick
+check_eq $route_calls, 2, "after moving and two seconds, exactly one retry"
+check $spoken.none? { |s| s =~ /No path/ }, "with no repeat announcement"
+
+Game_Player.route = [[8, 5]]
+PraBeacon.recalc = 121
+player.x = 8
+player.pra_beacon_tick
+check PraBeacon.route_cache && !PraBeacon.route_cache.empty?,
+      "and when a path opens up, the beacon picks it up again"
+PraBeacon.reset
+
 # ── Changing map drops the beacon ───────────────────────────────────────────
 PraSession.selected_event_index = 0
 player.pra_beacon_toggle

@@ -1353,10 +1353,33 @@ def reduceEventsInLanes(events_list)
       end
     end
 
+    # PERFORMANCE: neighbor expansion used to rescan EVERY event on the map
+    # (several times per tile examined), so search cost multiplied by the
+    # event count - the difference between a corridor map and an event-dense
+    # one like Keneph Jungle. One snapshot per search, keyed by tile.
+    @pra_astar_event_index = {}
+    begin
+      if map.events
+        map.events.values.each do |ev|
+          (@pra_astar_event_index[[ev.x, ev.y]] ||= []) << ev
+        end
+      end
+    rescue Exception
+      @pra_astar_event_index = nil
+    end
+
     start.hCost = distanceNode(start, target)
+    # PERFORMANCE: membership used to be linear scans of ever-growing arrays
+    # (nodeInSet over the closed set for EVERY neighbor), which is quadratic -
+    # an exhausted 5000-iteration search on a big map was millions of node
+    # comparisons. The beacon runs this while walking, and on Keneph Jungle
+    # that froze the game step by step (a player report). Same algorithm,
+    # same results - the sets are just hashes now.
     openSet = []
-    closedSet = []
+    openHash = {}
+    closedHash = {}
     openSet.push(start)
+    openHash[[start.x, start.y]] = start
     while openSet.length > 0 do
       iterations = iterations + 1
       if iterations > 5000
@@ -1372,8 +1395,8 @@ def reduceEventsInLanes(events_list)
       end
 
       openSet.delete(currentNode)
-      closedSet.push(currentNode)
-      #   Kernel.pbMessage("current Node is " + currentNode.x.to_s + ", " + currentNode.y.to_s)
+      openHash.delete([currentNode.x, currentNode.y])
+      closedHash[[currentNode.x, currentNode.y]] = true
 
       if currentNode.equals(target)
         return retracePath(start, currentNode, isTargetPassable, targetDirection, originalTarget)
@@ -1381,10 +1404,10 @@ def reduceEventsInLanes(events_list)
 
       neighbthes = getNeighbthes(currentNode, target, isTargetPassable, targetDirection, map)
       for neighbthe in neighbthes
-        if nodeInSet(neighbthe, closedSet)
+        if closedHash[[neighbthe.x, neighbthe.y]]
           next
         end
-        neighbtheIndex = getNodeIndexInSet(neighbthe, openSet)
+        existingNode = openHash[[neighbthe.x, neighbthe.y]]
         newMovementCostToNeighbthe = 2
         if currentNode.parent != "none"
           xDifNeighbthe = neighbthe.x - currentNode.x
@@ -1400,16 +1423,17 @@ def reduceEventsInLanes(events_list)
           newMovementCostToNeighbthe = 1.5
         end
 
-        if neighbtheIndex > -1 && newMovementCostToNeighbthe < openSet[neighbtheIndex].gCost
-          openSet[neighbtheIndex].gCost = newMovementCostToNeighbthe
-          openSet[neighbtheIndex].hCost = distanceNode(openSet[neighbtheIndex], target)
-          openSet[neighbtheIndex].parent = currentNode
+        if existingNode && newMovementCostToNeighbthe < existingNode.gCost
+          existingNode.gCost = newMovementCostToNeighbthe
+          existingNode.hCost = distanceNode(existingNode, target)
+          existingNode.parent = currentNode
         end
-        if (neighbtheIndex == -1)
+        if existingNode.nil?
           neighbthe.gCost = newMovementCostToNeighbthe
           neighbthe.hCost = distanceNode(neighbthe, target)
           neighbthe.parent = currentNode
           openSet.push(neighbthe)
+          openHash[[neighbthe.x, neighbthe.y]] = neighbthe
         end
       end
     end
@@ -1477,24 +1501,21 @@ def reduceEventsInLanes(events_list)
     next_x = node.x + offsetx
     next_y = node.y + offsety
 
-    # --- HELPER: Debug Event Scan ---
+    # --- HELPER: events on one tile, from the per-search index when a search
+    # is running (see aStern) instead of rescanning the whole event list.
+    events_at = ->(tx, ty) {
+      if @pra_astar_event_index
+        @pra_astar_event_index[[tx, ty]] || []
+      elsif $game_map.events
+        $game_map.events.values.select { |e| e.x == tx && e.y == ty }
+      else
+        []
+      end
+    }
     scan_events = ->(tx, ty, context) {
-      found_something = false
-      if $game_map.events
-        # tts("#{context} scanning at #{tx}, #{ty}...") # Uncomment if needed
-        for event in $game_map.events.values
-          if event.x == tx && event.y == ty
-            found_something = true
-            name = event.character_name
-            thr = event.through
-            id = event.id
-            # Log everything found
-            #tts("Found Event #{id} at #{tx},#{ty}. Name: '#{name}'. Thr: #{thr}")
-            
-            if name != "" && !thr
-               return true # Blocked
-            end
-          end
+      events_at.call(tx, ty).each do |event|
+        if event.character_name != "" && !event.through
+          return true # Blocked
         end
       end
       return false
@@ -1549,8 +1570,8 @@ def reduceEventsInLanes(events_list)
       is_stair = (tag == 27 || tag == 28)
       
       has_jump_event = false
-      for event in $game_map.events.values
-        if event.x == ledge_x && event.y == ledge_y && is_jump_event?(event, dir)
+      events_at.call(ledge_x, ledge_y).each do |event|
+        if is_jump_event?(event, dir)
           has_jump_event = true
           break
         end
