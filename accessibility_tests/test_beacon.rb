@@ -63,6 +63,12 @@ end
 
 class Scene_Map; def main; :ran; end; end
 
+# Real battles enter through the battle scene - in Desolation the event bus
+# below never fires outside the battle test environment.
+class PokeBattle_Scene
+  def pbStartBattle(battle); $battles_started = ($battles_started || 0) + 1; end
+end
+
 # The game's battle event bus, recording what gets subscribed.
 $battle_start_handlers = []
 module Events
@@ -404,6 +410,17 @@ $battle_start_handlers.each { |h| h.call }
 check_eq PraBeaconAudio.playing, false, "battle start stops the beacon loop"
 check_eq PraBeacon.active, true, "but the beacon stays ACTIVE - it is a pause"
 check PraBeacon.target != nil, "and the target survives, so it resumes after"
+
+# The path REAL battles take: the scene's pbStartBattle. A player caught the
+# beacon droning through fights because Desolation never fires the event bus
+# outside its battle test environment.
+PraBeaconAudio.instance_variable_set(:@playing, true)   # loop running again
+$battles_started = 0
+PokeBattle_Scene.new.pbStartBattle(:battle)
+check_eq $battles_started, 1, "pbStartBattle still starts the real battle"
+check_eq PraBeaconAudio.playing, false,
+         "and stops the beacon - the fix for the beacon droning through fights"
+check_eq PraBeacon.active, true, "still a pause, not a cancel"
 PraBeaconAudio.instance_variable_set(:@available, false)
 PraBeaconAudio.instance_variable_set(:@fn, nil)
 PraBeacon.reset

@@ -213,7 +213,12 @@ module A11yBattle
       lines = []
       battle.battlers.each_with_index do |b, i|
         next if b.nil? || (b.isFainted? rescue true)
-        own = (battle.pbOwnedByPlayer?(i) rescue (i % 2 == 0))
+        # SIDE, not ownership. A partner trainer's Pokemon (Connor's, in the
+        # Keneph caves doubles) is NOT pbOwnedByPlayer?, but it fights on
+        # YOUR side: sides in this engine are index parity - even indexes
+        # yours, odd the enemy's. Grouping by ownership put allies in the W
+        # report, which is exactly the bug a player caught.
+        own = (i % 2 == 0)
         next if own != own_side
         line = battler_line(battle, b, own)
         next unless line
@@ -259,9 +264,17 @@ module A11yBattle
       lines = []
       battle.battlers.each_with_index do |b, i|
         next if b.nil? || (b.isFainted? rescue true)
-        own = (battle.pbOwnedByPlayer?(i) rescue (i % 2 == 0))
+        own = (i % 2 == 0)                # side by index parity, as above
         line = battler_line(battle, b, own)
-        lines << "#{own ? "Your" : "Enemy"} #{line}" if line
+        next unless line
+        label = if !own
+                  "Enemy"
+                elsif (battle.pbOwnedByPlayer?(i) rescue true)
+                  "Your"
+                else
+                  "Ally"                  # a partner trainer's Pokemon
+                end
+        lines << "#{label} #{line}"
       end
       if lines.empty?
         say("No battlers to report.")

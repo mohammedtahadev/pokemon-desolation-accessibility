@@ -364,6 +364,49 @@ check !(foe_read =~ /Tackle, 35 of 35 PP/), "never the enemy's exact PP"
 check !foe_read.include?("Your Growlithe"), "and nothing about your side"
 Input.clear
 
+# ── A partner trainer's doubles: the bug a player caught ───────────────────
+# With Connor fighting beside you, his Pokemon is NOT pbOwnedByPlayer? - the
+# real engine returns true only for index 0 here - but it IS on your side.
+# W must never read it, and Q and K must claim it as an ally.
+dbattle = PokeBattle_Battle.new
+ally = PokeBattle_Battler.new("Nidorino", 32, 70)
+foe2 = PokeBattle_Battler.new("Golbat", 33, 75)
+ally.type1 = :POISON; ally.type2 = nil
+foe2.type1 = :POISON; foe2.type2 = :FLYING
+ally.moves = [FakeMove.new("Peck", :FLYING, 30, 35, :PECK)]
+dbattle.battlers = [me, foe, ally, foe2]
+def dbattle.pbOwnedByPlayer?(i); i == 0; end
+dscene = PokeBattle_Scene.new(dbattle)
+
+$spoken = []
+Input.press(Input::R)                      # W: the enemy side only
+dscene.pbFrameUpdate(nil, true)
+w_read = said.join(" | ")
+check w_read.include?("Hiker's Geodude"), "W in ally doubles reads the first enemy"
+check w_read.include?("Golbat"), "and the second enemy"
+check !w_read.include?("Nidorino"),
+      "and NEVER the partner trainer's Pokemon - that was the bug"
+Input.clear
+
+$spoken = []
+Input.press(Input::L)                      # Q: your whole side
+dscene.pbFrameUpdate(nil, true)
+q_read = said.join(" | ")
+check q_read.include?("Growlithe"), "Q in ally doubles reads your Pokemon"
+check q_read.include?("Nidorino"), "and the ally beside you"
+check q_read =~ /Peck, 30 of 35 PP/, "with the ally's moves and PP, your side's detail"
+check !q_read.include?("Golbat"), "and no enemy"
+Input.clear
+
+$spoken = []
+Input.press(0x4B)                          # K: everyone, labeled
+dscene.pbFrameUpdate(nil, true)
+k_read = said.join(" | ")
+check k_read.include?("Your Growlithe"), "K labels your own Pokemon Your"
+check k_read.include?("Ally Nidorino"), "the partner trainer's as Ally, not Enemy"
+check k_read.include?("Enemy Golbat"), "and the enemy as Enemy"
+Input.clear
+
 # ── Z on the fight menu: the move card, spoken ─────────────────────────────
 $cache_moves = { :EMBER => Struct.new(:name, :category, :basedamage, :accuracy, :desc)
                             .new("Ember", :special, 40, 100, "May burn the target.") }

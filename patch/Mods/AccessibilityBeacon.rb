@@ -607,6 +607,27 @@ if defined?(Events) && Events.respond_to?(:onStartBattle) && !$a11y_beacon_battl
   }
 end
 
+# In Desolation, Events.onStartBattle turned out to be triggered ONLY by the
+# battle test environment - a real wild or trainer battle never fires it, so
+# the hook above sat armed and useless and the beacon droned through fights
+# (a player caught this). Every real battle DOES go through the battle
+# scene's pbStartBattle, so the pause rides that instead. Both hooks stay:
+# stopping an already-stopped beacon is a no-op.
+if defined?(PokeBattle_Scene) && PokeBattle_Scene.method_defined?(:pbStartBattle)
+  class PokeBattle_Scene
+    unless method_defined?(:pra_beacon_start_battle)
+      alias_method :pra_beacon_start_battle, :pbStartBattle
+      def pbStartBattle(*args)
+        begin
+          PraBeaconAudio.stop
+        rescue Exception
+        end
+        pra_beacon_start_battle(*args)
+      end
+    end
+  end
+end
+
 # Leaving the map invalidates the route, and a stuck looping beacon would carry
 # into a cutscene or a battle.
 class Scene_Map
