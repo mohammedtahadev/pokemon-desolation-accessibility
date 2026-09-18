@@ -12,7 +12,7 @@ Thirteen mods, all loaded from a `patch` folder that never touches the game's ow
 
 ## Installation
 
-1. Download this repository: activate the **Code** button on this page, then **Download ZIP**, and extract it.
+1. Download the pack: go to the [latest release](https://github.com/mohammedtahadev/pokemon-desolation-accessibility/releases/latest) and download `Pokemon-Desolation-Accessibility-v1.0.zip`, then extract it. (Downloading the repository itself with the Code button works too.)
 2. Open your Pokémon Desolation game folder — the folder that contains `Game.exe`.
 3. Copy these two folders from the extracted download into the game folder, merging when Windows asks:
    - `Data` — contains one file, the bootstrap loader.
