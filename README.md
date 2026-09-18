@@ -12,7 +12,7 @@ Thirteen mods, all loaded from a `patch` folder that never touches the game's ow
 
 ## Installation
 
-1. Download the pack: go to the [latest release](https://github.com/mohammedtahadev/pokemon-desolation-accessibility/releases/latest) and download `Pokemon-Desolation-Accessibility-v1.0.zip`, then extract it. (Downloading the repository itself with the Code button works too.)
+1. Download the pack: go to the [latest release](https://github.com/mohammedtahadev/pokemon-desolation-accessibility/releases/latest) and download the `Pokemon-Desolation-Accessibility` zip, then extract it. (Downloading the repository itself with the Code button works too.)
 2. Open your Pokémon Desolation game folder — the folder that contains `Game.exe`.
 3. Copy these two folders from the extracted download into the game folder, merging when Windows asks:
    - `Data` — contains one file, the bootstrap loader.
@@ -80,6 +80,6 @@ This project would not exist without **Lorenzo ([fclorenzo](https://github.com/f
 
 Also thanks to the **Pokémon Reborn team**, whose built-in Blindstep accessibility support was the model for the battle speech, the inspect keys, and several other features, and to the **Pokémon Desolation team** for the game itself.
 
-The 3D beacon is built on [Steam Audio](https://valvesoftware.github.io/steam-audio/) by Valve and [miniaudio](https://miniaud.io/).
+The 3D beacon is built on [Steam Audio](https://valvesoftware.github.io/steam-audio/) by Valve and [miniaudio](https://miniaud.io/). Speech reaches the screen reader through the NVDA controller client library (`patch\nvdaControllerClient.dll`) by [NV Access](https://www.nvaccess.org/), distributed under the GNU LGPL.
 
 This is a fan-made accessibility project. It is not affiliated with the Pokémon Desolation team, Nintendo, Game Freak or The Pokémon Company. No copyrighted game assets are included.
