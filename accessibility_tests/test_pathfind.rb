@@ -311,6 +311,46 @@ before = $game_player.y
 $game_player.follow_autowalk_path
 check $game_player.y == before + 1, "auto-walk steps toward the next node"
 
+# ------------------------------------------------ one route search for all
+# The "Door to Keneph Beach" report: the beacon could guide to a door that P
+# called unreachable, because they had different fallbacks. Recreate it: the
+# door tile itself is refused, the event's approach sides offer nothing, and
+# only the tile BELOW the door works. Both must now find it.
+$game_player.x = 2; $game_player.y = 2
+reach_only = [5, 8]                          # the one tile a route exists to
+$astern_calls = []
+$game_player.define_singleton_method(:aStern) do |a, b, map = $game_map|
+  $astern_calls << [b.x, b.y]
+  [b.x, b.y] == reach_only ? [Game_Player::Node.new(b.x, b.y)] : []
+end
+$game_player.define_singleton_method(:getEventTiles) { |ev, map = $game_map| [] }
+door2 = Game_Event.new(9, "Door", 5, 7, 0, [Cmd.new(TRANSFER, [0, 2, 4, 4, 2]), Cmd.new(DONE)])
+
+r = $game_player.a11y_best_route(5, 7, nil, door2)
+check r.length == 1 && r[0].x == 5 && r[0].y == 8,
+      "the shared search falls back to the tiles around the target"
+check $astern_calls.first == [5, 7], "after trying the target tile itself first"
+
+PraSession.mapevents = [door2]
+PraSession.selected_event_index = 0
+$spoken = []
+$walked = nil
+$game_player.define_singleton_method(:start_autowalk) { |route| $walked = route }
+$game_player.define_singleton_method(:printInstruction) { |i| $walked = :directions }
+$game_player.pathfind_to_selected_event
+check $spoken.none? { |s| s =~ /No path/i },
+      "P no longer says No path where a neighbouring tile is reachable"
+check !$walked.nil?, "and it walks or gives directions instead"
+
+$astern_calls = []
+cand = $game_player.a11y_best_route(1, 1, [[5, 8]], nil)
+check cand.length == 1 && $astern_calls == [[5, 8]],
+      "a connection's own crossing tiles are tried first, and win when they work"
+
+$astern_calls = []
+$game_player.a11y_best_route(5, 7, [[5, 7]], nil)
+check $astern_calls.count([5, 7]) == 1, "and no tile is searched twice"
+
 # Cleanup: don't leave a test POI file behind.
 File.delete(CUSTOM_NAMES_FILE) rescue nil
 

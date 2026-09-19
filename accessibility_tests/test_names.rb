@@ -44,10 +44,12 @@ SHOW_TEXT = 101; MORE_TEXT = 401; TRANSFER = 201; SCRIPT = 355
 MOVE_ROUTE = 209; SWITCH = 121; DONE = 0
 
 class Ev
-  attr_accessor :name, :character_name, :list, :x, :y, :custom_name
-  def initialize(name: "EV001", sprite: "", list: nil, x: 1, y: 1)
+  attr_accessor :name, :character_name, :list, :x, :y, :custom_name, :trigger
+  # trigger: 0 action button (RPG Maker's default), 1 player touch,
+  # 2 event touch, 3 autorun, 4 parallel.
+  def initialize(name: "EV001", sprite: "", list: nil, x: 1, y: 1, trigger: 0)
     @name = name; @character_name = sprite; @list = list || [Cmd.new(DONE)]
-    @x = x; @y = y
+    @x = x; @y = y; @trigger = trigger
   end
 end
 def text(*lines)
@@ -139,8 +141,22 @@ check d.(Ev.new(sprite: "", list: text(long))).end_with?("..."), "and says so"
 
 check_eq d.(Ev.new(sprite: "", list: [Cmd.new(MOVE_ROUTE, [-1, nil]), Cmd.new(DONE)])),
          "Move trigger", "an invisible tile that moves you is called out"
-check_eq d.(Ev.new(sprite: "", list: [Cmd.new(SWITCH, [1, 1, 0]), Cmd.new(DONE)])),
-         "Trigger tile", "and any other invisible tile too"
+# The Keneph Caves lever, as the game builds it: invisible, action button,
+# plays a sound, flips the gate's switch, says nothing.
+LEVER_SE = 250
+lever_list = [Cmd.new(LEVER_SE, [nil]), Cmd.new(SWITCH, [165, 165, 0]), Cmd.new(DONE)]
+check_eq d.(Ev.new(sprite: "", list: lever_list, trigger: 0)),
+         "Lever", "an invisible action-button event that flips a switch is a Lever - it used to read Trigger tile"
+check_eq d.(Ev.new(sprite: "", list: [Cmd.new(SWITCH, [1, 1, 0]), Cmd.new(DONE)], trigger: 1)),
+         "Step trigger, fires when you walk onto it",
+         "the same switch on a STEP trigger is not a lever - it says what it is"
+check_eq d.(Ev.new(sprite: "", list: [Cmd.new(LEVER_SE, [nil]), Cmd.new(DONE)], trigger: 0)),
+         "Hidden object, check it with the action button",
+         "an invisible action-button event that flips nothing says how to use it"
+check_eq d.(Ev.new(sprite: "", list: [Cmd.new(MOVE_ROUTE, [-1, nil]), Cmd.new(DONE)], trigger: 1)),
+         "Move trigger", "a move trigger keeps its name"
+check_eq d.(Ev.new(sprite: "NPC 19", list: lever_list, trigger: 0)), "Person",
+         "and anything with a sprite is never mistaken for a lever"
 
 check_eq d.(Ev.new(sprite: "NPC 19")), "Person", "a silent NPC sprite is a person"
 check_eq d.(Ev.new(sprite: "Whirlpool")), "Object (Whirlpool)",

@@ -312,9 +312,19 @@ module A11yNames
       # on it. Roughly 1,100 of these exist and they used to be the bulk of what
       # had no label at all. Worth hearing precisely because you cannot see one
       # coming - most are ledge hops and stairs that move you against your will.
+      #
+      # A LEVER is drawn into the scenery, so it is invisible too - but it is
+      # the one kind you must go and use. Its shape, across the whole game:
+      # activated with the action button, flips a game switch (the gate), and
+      # says nothing. Exactly the Keneph Caves levers match; they used to read
+      # "Trigger tile", and a player could not find them (a player report).
       if sprite.empty?
+        trig = (event.trigger rescue nil)
+        return "Lever" if trig == 0 && flips_switch?(list)
         return "Move trigger" if move_route?(list)
-        return "Trigger tile"
+        return "Step trigger, fires when you walk onto it" if trig == 1 || trig == 2
+        return "Hidden object, check it with the action button" if trig == 0
+        return "Invisible trigger"
       end
 
       # A sprite, but silent. NPC sprites are people standing around; anything
@@ -329,6 +339,13 @@ module A11yNames
     # Set Move Route (209) - the event shoves something around when touched.
     def move_route?(list)
       list.any? { |cmd| (cmd.code rescue nil) == 209 }
+    rescue Exception
+      false
+    end
+
+    # Control Switches (121) - turns a game switch on or off.
+    def flips_switch?(list)
+      list.any? { |cmd| (cmd.code rescue nil) == 121 }
     rescue Exception
       false
     end

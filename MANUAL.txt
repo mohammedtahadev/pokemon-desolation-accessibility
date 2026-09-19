@@ -743,7 +743,9 @@ works out a name:
   no sprite, but it talks         Sign: Sunshell Town Teleporter
   a sprite, silent, no name       Person
   invisible, moves you            Move trigger
-  invisible, sets something       Trigger tile
+  invisible lever (Keneph Caves)  Lever
+  invisible, fires when stepped   Step trigger, fires when you walk onto it
+  invisible, action button        Hidden object, check it with the action button
 
 Every event in the game now gets a name: 8,959 of 8,959.
 

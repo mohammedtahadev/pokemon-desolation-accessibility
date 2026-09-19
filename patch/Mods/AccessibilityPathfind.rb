@@ -1212,44 +1212,62 @@ def reduceEventsInLanes(events_list)
     end
   end  
 
+  # THE one route search, shared by P (walk / directions) and the Shift+B
+  # beacon. They used to have different fallbacks - the beacon tried all four
+  # tiles around a target, P only the sides the event's settings suggested -
+  # so the beacon could guide you to a door that P called unreachable (a
+  # player report, "Door to Keneph Beach"). Now they cannot disagree.
+  # Tried in order, first route wins:
+  #   1. a connection's own crossing tiles
+  #   2. the target tile itself
+  #   3. the event's approach sides (getEventTiles)
+  #   4. every tile around the target
+  def a11y_best_route(tx, ty, candidates = nil, event = nil)
+    start = -> { Node.new(@x, @y) }
+    tried = {}
+    attempt = lambda do |x, y|
+      return [] if tried[[x, y]]
+      tried[[x, y]] = true
+      aStern(start.call, Node.new(x, y))
+    end
+
+    Array(candidates).each do |tile|
+      r = attempt.call(tile[0], tile[1])
+      return r unless r.empty?
+    end
+
+    r = attempt.call(tx, ty)
+    return r unless r.empty?
+
+    if event
+      begin
+        getEventTiles(event).each do |t|
+          r = attempt.call(t.node.x, t.node.y)
+          return r unless r.empty?
+        end
+      rescue Exception
+      end
+    end
+
+    [[tx, ty + 1], [tx - 1, ty], [tx + 1, ty], [tx, ty - 1]].each do |ax, ay|
+      r = attempt.call(ax, ay)
+      return r unless r.empty?
+    end
+    []
+  rescue Exception
+    []
+  end
+
   def pathfind_to_selected_event
     idx = PraSession.selected_event_index
     list = PraSession.mapevents
     return if idx < 0 || list.nil? || list[idx].nil?
-    
+
     target_event = list[idx]
-    route = []
+    cands = (target_event.respond_to?(:candidates) && target_event.candidates) ? target_event.candidates : nil
+    real_event = target_event.is_a?(VirtualEvent) ? nil : target_event
+    route = a11y_best_route(target_event.x, target_event.y, cands, real_event)
 
-    # STRATEGY 1: Check Candidates (Virtual Connections)
-    if target_event.respond_to?(:candidates) && target_event.candidates && !target_event.candidates.empty?
-      for tile in target_event.candidates
-        cand_route = aStern(Node.new(@x, @y), Node.new(tile[0], tile[1]))
-        if !cand_route.empty?
-          route = cand_route
-          break
-        end
-      end
-      
-      if route.empty?
-        tts("Could not find a path to any tile in this connection.")
-        return
-      end
-
-    # STRATEGY 2: Standard Event Pathfinding
-    else
-      route = aStern(Node.new(@x, @y), Node.new(target_event.x, target_event.y))
-      if route.empty?
-        possible_targets = getEventTiles(target_event)
-        for target in possible_targets
-          alternative_route = aStern(Node.new(@x, @y), target.node)
-          if !alternative_route.empty?
-            route = alternative_route
-            break
-          end
-        end
-      end
-    end
-    
     if route.empty?
       tts("No path found.")
     else

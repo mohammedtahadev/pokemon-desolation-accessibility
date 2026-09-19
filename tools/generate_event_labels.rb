@@ -105,7 +105,7 @@ class Scene_Map;   def main; end; end
 load MOD
 
 # ── An event shaped the way the mod expects to find one ─────────────────────
-FakeEvent = Struct.new(:name, :character_name, :list, :x, :y) do
+FakeEvent = Struct.new(:name, :character_name, :list, :x, :y, :trigger) do
   def custom_name; @cn; end
   def custom_name=(v); @cn = v; end
 end
@@ -151,7 +151,7 @@ Dir[File.join(GAME, "Data", "Map[0-9][0-9][0-9].rxdata")].sort.each do |f|
       next
     end
 
-    e = FakeEvent.new(name, sprite, list, ev.ivget("x"), ev.ivget("y"))
+    e = FakeEvent.new(name, sprite, list, ev.ivget("x"), ev.ivget("y"), trig)
     label = A11yNames.derive(e)
 
     if label && !label.empty?
@@ -167,7 +167,10 @@ Dir[File.join(GAME, "Data", "Map[0-9][0-9][0-9].rxdata")].sort.each do |f|
         when /\ATrainer: /      then "trainer (from script)"
         when /\AObject/        then "object"
         when /\AMove trigger/  then "move trigger (invisible)"
-        when /\ATrigger tile/  then "trigger tile (invisible)"
+        when /\ALever\z/       then "lever (invisible)"
+        when /\AStep trigger/  then "step trigger (invisible)"
+        when /\AHidden object/ then "hidden object (invisible)"
+        when /\AInvisible trigger/ then "other trigger (invisible)"
         when /\APerson\z/      then "person (silent)"
         else                         "named or described"
         end

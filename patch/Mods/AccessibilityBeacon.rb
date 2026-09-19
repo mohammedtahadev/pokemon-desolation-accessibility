@@ -476,7 +476,8 @@ class Game_Player < Game_Character
     label = nil
     label = ev.custom_name if ev.respond_to?(:custom_name) && ev.custom_name
     label = ev.name if label.nil? || label.to_s.strip.empty?
-    { map_id: $game_map.map_id, x: ev.x, y: ev.y, candidates: cands, name: (label rescue nil) }
+    real = (defined?(VirtualEvent) && ev.is_a?(VirtualEvent)) ? nil : ev
+    { map_id: $game_map.map_id, x: ev.x, y: ev.y, candidates: cands, name: (label rescue nil), event: real }
   rescue Exception
     nil
   end
@@ -484,6 +485,12 @@ class Game_Player < Game_Character
   def pra_beacon_route
     t = PraBeacon.target
     return [] unless t && t[:map_id] == $game_map.map_id
+    # The pathfinder's shared search, so P and the beacon always agree on
+    # whether a target is reachable. The code below is the fallback for a
+    # pathfinder too old to have it.
+    if respond_to?(:a11y_best_route)
+      return a11y_best_route(t[:x], t[:y], t[:candidates], t[:event])
+    end
     if t[:candidates] && !t[:candidates].empty?
       t[:candidates].each do |tile|
         r = aStern(Node.new(@x, @y), Node.new(tile[0], tile[1]))
