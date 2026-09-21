@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityWorld.rb - tile sounds.
 #
 # THE LEGEND RPG SYSTEM

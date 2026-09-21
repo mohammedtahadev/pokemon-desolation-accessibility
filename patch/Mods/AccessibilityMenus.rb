@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityMenus.rb - makes every menu outside battle speak.
 #
 # Speech engine lives in AccessibilitySpeech.rb. This file only decides WHAT

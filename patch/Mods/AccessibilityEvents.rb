@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityEvents.rb - speaks selection screens that are built out of map
 # event commands rather than window classes.
 #

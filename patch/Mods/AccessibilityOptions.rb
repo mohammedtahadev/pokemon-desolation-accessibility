@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityOptions.rb - puts the accessibility settings in the game's own
 # Options screen, where they belong.
 #

@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityMapFix.rb - one defensive guard on a base-game method.
 #
 # This is NOT an accessibility feature. It keeps the Accessibility* prefix only

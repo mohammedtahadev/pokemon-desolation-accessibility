@@ -1,4 +1,6 @@
 # =============================================================================
+# Pathfinder and auto-walk by Lorenzo (fclorenzo), from pkreborn-access; ported
+# to Desolation and modified by Mohammed Taha (mohammedtahadev).
 # AccessibilityPathfind.rb
 #
 # A port of the Pokemon Reborn accessibility mods pra-pathfind.rb and

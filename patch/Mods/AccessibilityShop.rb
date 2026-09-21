@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityShop.rb - the Poke Mart, beyond its item list.
 #
 # The item LIST already speaks: Window_PokemonMart is a selectable window, so

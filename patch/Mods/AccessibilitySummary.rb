@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilitySummary.rb - the accessible summary, like Reborn's
 # pra-accessible-summary: everything about a Pokemon as spoken lists you arrow
 # through, instead of a picture.

@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityQuests.rb - Desolation's quest log, by ear.
 #
 # The quest log is Desolation's own feature (Scripts/Pokemon Desolation/

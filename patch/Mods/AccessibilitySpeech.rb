@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilitySpeech.rb - screen-reader speech core for Pokemon Desolation.
 #
 # This file is the ENGINE only: NVDA binding, text cleaning, and the speak /

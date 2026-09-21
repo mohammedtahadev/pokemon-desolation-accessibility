@@ -887,3 +887,19 @@ happened once for real, and none of the other harnesses can see it, because
 they each load one mod at a time.
 
 Run all thirteen after any edit.
+
+CREDITS
+-------
+Made by Mohammed Taha (github.com/mohammedtahadev). Every mod in this pack is
+his, except pathfinding.
+
+Pathfinding and auto-walk are the work of Lorenzo (github.com/fclorenzo),
+from his pkreborn-access project for Pokemon Reborn, ported to Desolation
+and modified. The biology descriptions come from his pokemon_biology.json,
+and the Accessible Summary's menu layout follows his accessible summary mod.
+
+The 3D beacon's audio engine, beacon.dll, was written by Mohammed Taha with
+the help of Claude, Anthropic's AI, on Valve's Steam Audio and miniaudio.
+Spoken damage is ported from Mohammed Taha's SpokenDamageAccessibility mod
+for Pokemon Reborn. Battle speech is modelled on the Pokemon Reborn team's
+Blindstep support.

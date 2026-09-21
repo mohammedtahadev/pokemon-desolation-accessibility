@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityPathfindNames.rb - gives the pathfinder's event list real names.
 #
 # THE PROBLEM

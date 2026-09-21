@@ -2,6 +2,8 @@
 
 Screen-reader accessibility mods for [Pokémon Desolation](https://desolation.fandom.com/), a fan game built on Pokémon Essentials. With this pack installed, a blind player can play the game start to finish with **NVDA**: every menu, battle, quest, item and Pokémon speaks, footsteps tell you what you are walking on, and a 3D audio beacon guides you to doors, people and items.
 
+Made by **Mohammed Taha** ([mohammedtahadev](https://github.com/mohammedtahadev)).
+
 Fourteen mods, all loaded from a `patch` folder that never touches the game's own files. **This pack contains no game files** — you need your own copy of Pokémon Desolation.
 
 ## Requirements
@@ -27,7 +29,7 @@ To **uninstall**: delete `Data\Mods\AccessibilityLoader.rb` and the `patch\Mods`
 
 - **Every menu and screen** — the pause menu, options, shops, the party, the PC, dialogue with speaker names, choices.
 - **Battles** — every message, the command and fight menus, targeting in doubles, exact damage after every hit, and inspect keys for both sides of the field.
-- **The Accessible Summary** — a fully spoken summary of any Pokémon: stats with IVs and EVs, base stats, abilities, moves with descriptions, biology, and a team export. Ported from Lorenzo's Reborn mod (see credits).
+- **The Accessible Summary** — a fully spoken summary of any Pokémon: stats with IVs and EVs, base stats, abilities, moves with descriptions, biology, and a team export. Its menu layout follows Lorenzo's accessible summary for Reborn (see credits).
 - **The bag** — pockets announce themselves, every item reads its description, and a TM tells you who in your party can learn it.
 - **The shop** — how many to buy, the price, what you already own, your money, and every message the shopkeeper says.
 - **The quest log** — tabs, full quest pages that never spoil unreached objectives, and spoken "Quest added / completed" updates on the map.
@@ -73,16 +75,16 @@ If the game crashes with an error window, the text of that window is the single 
 
 ## Credits
 
-This project would not exist without **Lorenzo ([fclorenzo](https://github.com/fclorenzo))** and his [pkreborn-access](https://github.com/fclorenzo/pkreborn-access) project for Pokémon Reborn. Three pillars of this pack are ports or direct adaptations of his work:
+This pack is made by **Mohammed Taha** ([mohammedtahadev](https://github.com/mohammedtahadev)). Every mod in it is his: speech, menus, battles and spoken damage, the Accessible Summary, the bag, shop and quest log, tile sounds, event names, the options, the loader, and the 3D beacon. The one exception is pathfinding.
 
-- **The Accessible Summary** — modeled on his pra-accessible-summary mod, including its menu structure, the stats/IV/EV details view, the base stat view, and the team export.
-- **Pathfinding and auto-walk** — his event scanner, pathfinder and auto-walk, ported to Desolation's maps.
-- **The biology database** — the Pokémon biology descriptions (1,020 species) come from his `pokemon_biology.json`, shipped here pre-converted.
+The 3D beacon's audio engine, `beacon.dll`, was written by Mohammed Taha with the help of Claude, Anthropic's AI. It is built on [Steam Audio](https://valvesoftware.github.io/steam-audio/) by Valve and [miniaudio](https://miniaud.io/).
 
-Spoken damage in battle (the exact damage and HP left after every hit) is ported from Mohammed Taha's own **SpokenDamageAccessibility** mod for Pokémon Reborn, published in [pokemon-reborn-accessibility](https://github.com/mohammedtahadev/pokemon-reborn-accessibility).
+**Pathfinding and auto-walk** are the work of **Lorenzo ([fclorenzo](https://github.com/fclorenzo))**, from his [pkreborn-access](https://github.com/fclorenzo/pkreborn-access) project for Pokémon Reborn: his event scanner, pathfinder and auto-walk, ported to Desolation's maps and modified. Two more things owe him: the Pokémon biology descriptions (1,020 species) come from his `pokemon_biology.json`, shipped here pre-converted, and the Accessible Summary's menu layout follows his pra-accessible-summary mod. Go star his repository too.
+
+Spoken damage in battle is ported from Mohammed Taha's own **SpokenDamageAccessibility** mod for Pokémon Reborn, published in [pokemon-reborn-accessibility](https://github.com/mohammedtahadev/pokemon-reborn-accessibility).
 
 Also thanks to the **Pokémon Reborn team**, whose built-in Blindstep accessibility support was the model for the battle speech, the inspect keys, and several other features, and to the **Pokémon Desolation team** for the game itself.
 
-The 3D beacon is built on [Steam Audio](https://valvesoftware.github.io/steam-audio/) by Valve and [miniaudio](https://miniaud.io/). Speech reaches the screen reader through the NVDA controller client library (`patch\nvdaControllerClient.dll`) by [NV Access](https://www.nvaccess.org/), distributed under the GNU LGPL.
+Speech reaches the screen reader through the NVDA controller client library (`patch\nvdaControllerClient.dll`) by [NV Access](https://www.nvaccess.org/), distributed under the GNU LGPL.
 
 This is a fan-made accessibility project. It is not affiliated with the Pokémon Desolation team, Nintendo, Game Freak or The Pokémon Company. No copyrighted game assets are included.

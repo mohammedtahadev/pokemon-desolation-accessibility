@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityLoader.rb - the one file that has to live in Data\Mods.
 #
 # Everything else - all the accessibility mods, and any mods of your own -

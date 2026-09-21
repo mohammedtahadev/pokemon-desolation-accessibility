@@ -1,4 +1,7 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
+# beacon.dll, the 3D audio engine, was written by Mohammed Taha with the help
+# of Claude (Anthropic's AI).
 # AccessibilityBeacon.rb - a directional beacon that guides you to the selected
 # target BY EAR, turn by turn, following the walkable route around walls rather
 # than pointing in a straight line through them.

@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityBattle.rb - makes fights playable by ear.
 #
 # Modelled directly on Reborn 19.5's native Blindstep battle support

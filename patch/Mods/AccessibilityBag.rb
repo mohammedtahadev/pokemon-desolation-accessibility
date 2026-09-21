@@ -1,4 +1,5 @@
 # =============================================================================
+# Pokemon Desolation Accessibility Pack - by Mohammed Taha (mohammedtahadev).
 # AccessibilityBag.rb - the parts of the bag the menu hook cannot see.
 #
 # The item LIST already speaks: Window_PokemonBag descends from
