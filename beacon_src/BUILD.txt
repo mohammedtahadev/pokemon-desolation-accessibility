@@ -1,0 +1,21 @@
+beacon.dll - Steam Audio HRTF navigation beacon for Pokemon Reborn
+
+Rebuild:
+  1. Toolchain: w64devkit (portable gcc)  https://github.com/skeeto/w64devkit
+  2. Needs: phonon.h + phonon.dll from the Steam Audio 4.8.1 SDK,
+     and miniaudio.h  https://github.com/mackron/miniaudio
+  3. gcc -O2 -shared -o beacon.dll beacon.c phonon.dll -I. -lm
+  4. Copy beacon.dll and phonon.dll next to Game.exe.
+
+Exported API (called from patch/Mods/pra-beacon.rb via Ruby fiddle):
+  int  beacon_init(const char* soundPath)   0 = ok
+  int  beacon_ready(void)
+  int  beacon_start(void)
+  void beacon_stop(void)
+  void beacon_set_direction(float x, float y, float z)  // +x right, +y up, -z forward
+  void beacon_set_gain(float g)
+  void beacon_shutdown(void)
+  const char* beacon_last_error(void)
+
+NOTE: phonon.dll must be preloaded (Fiddle.dlopen) before beacon.dll, or
+Windows cannot resolve the import.

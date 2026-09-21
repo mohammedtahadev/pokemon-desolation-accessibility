@@ -70,6 +70,7 @@ If the game crashes with an error window, the text of that window is the single 
 
 - The mods are in `patch/Mods`, one feature per file, heavily commented. The one file outside `patch` is `Data/Mods/AccessibilityLoader.rb`, because Desolation's engine only loads mods from `Data/Mods` — that bootstrap is what teaches it to load the patch folder, each mod crash-isolated.
 - `accessibility_tests/` holds thirteen standalone test harnesses, over 600 checks total, runnable with plain Ruby and no game: `ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb` and so on. Run all of them after any edit.
+- `beacon_src/` holds the C source of `beacon.dll`, the 3D beacon's audio engine: a small wrapper around Steam Audio and miniaudio. `BUILD.txt` explains how to rebuild it.
 - `tools/` holds helper scripts, including `build_biology.rb`, which regenerates `patch/biology.dat` from Lorenzo's `pokemon_biology.json`.
 - Landmines worth knowing before editing are documented in MANUAL.txt — among them: Desolation's stat arrays put **Speed last**, not third as standard Essentials does, and the game's embedded Ruby ships **no standard library**.
 
@@ -86,5 +87,9 @@ Spoken damage in battle is ported from Mohammed Taha's own **SpokenDamageAccessi
 Also thanks to the **Pokémon Reborn team**, whose built-in Blindstep accessibility support was the model for the battle speech, the inspect keys, and several other features, and to the **Pokémon Desolation team** for the game itself.
 
 Speech reaches the screen reader through the NVDA controller client library (`patch\nvdaControllerClient.dll`) by [NV Access](https://www.nvaccess.org/), distributed under the GNU LGPL.
+
+## License
+
+GNU General Public License v3.0, the same license as Lorenzo's pkreborn-access, because this pack contains a modified version of his pathfinder. See [LICENSE](LICENSE). The bundled third-party libraries keep their own licenses: Steam Audio (`phonon.dll`) is Apache License 2.0, and the NVDA controller client is GNU LGPL.
 
 This is a fan-made accessibility project. It is not affiliated with the Pokémon Desolation team, Nintendo, Game Freak or The Pokémon Company. No copyrighted game assets are included.
