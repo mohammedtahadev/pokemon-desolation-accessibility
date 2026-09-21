@@ -110,8 +110,9 @@ double-adding, and so is this.
 BATTLES
 -------
 Modelled directly on Reborn 19.5's own Blindstep battle support - the tts
-calls in its Battle_Scene, its Battle_Inspect screen, and the community
-SpokenDamageAccessibility patch. Desolation ships the same engine with every
+calls in its Battle_Scene and its Battle_Inspect screen - and on Mohammed
+Taha's SpokenDamageAccessibility mod for Reborn, which speaks the exact damage
+of every hit. Desolation ships the same engine with every
 one of those speech lines missing, so this mod puts them back from the
 outside.
 

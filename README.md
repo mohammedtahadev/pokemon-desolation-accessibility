@@ -79,6 +79,8 @@ This project would not exist without **Lorenzo ([fclorenzo](https://github.com/f
 - **Pathfinding and auto-walk** — his event scanner, pathfinder and auto-walk, ported to Desolation's maps.
 - **The biology database** — the Pokémon biology descriptions (1,020 species) come from his `pokemon_biology.json`, shipped here pre-converted.
 
+Spoken damage in battle (the exact damage and HP left after every hit) is ported from Mohammed Taha's own **SpokenDamageAccessibility** mod for Pokémon Reborn, published in [pokemon-reborn-accessibility](https://github.com/mohammedtahadev/pokemon-reborn-accessibility).
+
 Also thanks to the **Pokémon Reborn team**, whose built-in Blindstep accessibility support was the model for the battle speech, the inspect keys, and several other features, and to the **Pokémon Desolation team** for the game itself.
 
 The 3D beacon is built on [Steam Audio](https://valvesoftware.github.io/steam-audio/) by Valve and [miniaudio](https://miniaud.io/). Speech reaches the screen reader through the NVDA controller client library (`patch\nvdaControllerClient.dll`) by [NV Access](https://www.nvaccess.org/), distributed under the GNU LGPL.

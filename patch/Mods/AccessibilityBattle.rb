@@ -2,8 +2,8 @@
 # AccessibilityBattle.rb - makes fights playable by ear.
 #
 # Modelled directly on Reborn 19.5's native Blindstep battle support
-# (Battle_Scene.rb tts calls, Battle_Inspect.rb, and the community
-# SpokenDamageAccessibility patch), reproduced here as a mod because Desolation
+# (Battle_Scene.rb tts calls, Battle_Inspect.rb) and on Mohammed Taha's
+# SpokenDamageAccessibility mod for Reborn, reproduced here because Desolation
 # ships the same engine with every one of those speech lines missing.
 #
 # WHAT SPEAKS
@@ -508,7 +508,7 @@ if defined?(PokeBattle_Battle)
 end
 
 # -----------------------------------------------------------------------------
-# Spoken damage, from the community SpokenDamageAccessibility patch: announce
+# Spoken damage, from Mohammed Taha's SpokenDamageAccessibility mod: announce
 # from the HP change itself, so every source of damage is covered - moves,
 # recoil, weather, hazards, status.
 # -----------------------------------------------------------------------------
