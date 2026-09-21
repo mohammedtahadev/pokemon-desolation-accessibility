@@ -311,6 +311,21 @@ before = $game_player.y
 $game_player.follow_autowalk_path
 check $game_player.y == before + 1, "auto-walk steps toward the next node"
 
+# ------------------------------------------------ cave floor is tag 4
+# Desolation paints cave floors with terrain tag 4 ("Rock"). Reborn's
+# pathfinder refused tag 4, so in the braille cave and the Waterfall Caves P
+# and the beacon could not take a single step. Pave the whole test map with
+# tag 4 and a route must still be found.
+$game_map.define_singleton_method(:terrain_tag) { |x, y| 4 }
+$game_player.x = 2; $game_player.y = 2
+cave = $game_player.aStern(Game_Player::Node.new(2, 2), Game_Player::Node.new(6, 2))
+check !cave.empty?, "a floor of terrain tag 4 (Desolation's cave floor) can be walked"
+check cave.last && cave.last.x == 6, "and the route reaches the target across it"
+$game_map.define_singleton_method(:terrain_tag) { |x, y| 5 }
+deep = $game_player.aStern(Game_Player::Node.new(2, 2), Game_Player::Node.new(6, 2))
+check deep.empty?, "deep water (tag 5) is still refused without Surf"
+$game_map.singleton_class.send(:remove_method, :terrain_tag)
+
 # ------------------------------------------------ one route search for all
 # The "Door to Keneph Beach" report: the beacon could guide to a door that P
 # called unreachable, because they had different fallbacks. Recreate it: the

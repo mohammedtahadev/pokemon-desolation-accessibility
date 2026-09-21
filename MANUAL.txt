@@ -8,7 +8,7 @@ whole mod system), so one bootstrap must stay there; it is what loads
 patch\Mods. Delete it and the entire accessibility system goes dead.
 
   Data\Mods\AccessibilityLoader.rb   the bootstrap - the one file outside patch
-  patch\Mods\                        the thirteen mods below, plus any of yours
+  patch\Mods\                        the fourteen mods below, plus any of yours
   patch\lib\                         beacon.dll and phonon.dll (Steam Audio)
   patch\audio\                       beacon.wav, arrive.ogg, tile_sounds\
   patch\biology.dat                  the biology database for the summary
@@ -28,6 +28,7 @@ backup back to AccessibilitySpeech.rb in Data\Mods.
   AccessibilityPathfind.rb        event scanning, pathfinding and auto-walk
   AccessibilityPathfindNames.rb   real names for the events in that list
   AccessibilityQuests.rb          the quest log, and spoken quest updates
+  AccessibilityShop.rb            the shop: how many, messages, money
   AccessibilitySpeech.rb          the speech engine (NVDA) and speaker names
   AccessibilitySummary.rb         the Accessible Summary menu entry and K
   AccessibilityWorld.rb           tile sounds
@@ -42,7 +43,7 @@ KEYS
   Shift+B  Start or stop the 3D beacon guiding you to the selected target
   K        On the party screen or in the PC: the Accessible Summary menu of
            that Pokemon (also the LAST entry of its action menu, after Cancel)
-  N        In the bag: read the selected item's description
+  N        In the bag or the shop: read the selected item's description
            In a Pokedex entry: read the species' biology
 
 The pathfinder adds its own keys - H, I, J, K, L, N, O, P and F5, most of them
@@ -200,6 +201,25 @@ verdicts the sighted player gets as icons.
 The one silent thing left is the Y-key item-rearranging mode, which lives
 entirely in local variables the mod cannot see. Sorting with X covers the
 same need.
+
+
+THE SHOP
+--------
+The item list spoke already - name and price for every row. Everything else
+the shop says went through its own text boxes and was silent. Now:
+
+  Entering the shop    your money is read after the first item.
+  How many?            the question, then "1, $200. 3 in your bag. You have
+                       $4,500." Up and down change the number by one, left
+                       and right by ten, and every change says the new
+                       number and total: "5, $1,000". Selling says the sale
+                       price and how many you own.
+  Shop messages        "That will be $400. OK?", "Here you are! Thank you!",
+                       "You don't have enough money." - all spoken, the Yes/No
+                       question included.
+  After buying/selling your new money total.
+  N                    in the item list, the item's full description - the
+                       same key as in the bag.
 
 
 THE QUEST LOG
@@ -829,6 +849,7 @@ The mods have a test suite that runs without launching the game:
   ruby test_battle.rb ../patch/Mods/AccessibilityBattle.rb         64 checks
   ruby test_bag.rb ../patch/Mods/AccessibilityBag.rb               17 checks
   ruby test_quests.rb ../patch/Mods/AccessibilityQuests.rb         19 checks
+  ruby test_shop.rb ../patch/Mods/AccessibilityShop.rb             32 checks
   ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb      125 checks
   ruby test_pathfind.rb ../patch/Mods/AccessibilityPathfind.rb     43 checks
   ruby test_names.rb ../patch/Mods/AccessibilityPathfindNames.rb   55 checks
@@ -864,4 +885,4 @@ AccessibilitySpeech at load time crashes the game on startup. That has already
 happened once for real, and none of the other harnesses can see it, because
 they each load one mod at a time.
 
-Run all twelve after any edit.
+Run all thirteen after any edit.

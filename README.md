@@ -2,7 +2,7 @@
 
 Screen-reader accessibility mods for [Pokémon Desolation](https://desolation.fandom.com/), a fan game built on Pokémon Essentials. With this pack installed, a blind player can play the game start to finish with **NVDA**: every menu, battle, quest, item and Pokémon speaks, footsteps tell you what you are walking on, and a 3D audio beacon guides you to doors, people and items.
 
-Thirteen mods, all loaded from a `patch` folder that never touches the game's own files. **This pack contains no game files** — you need your own copy of Pokémon Desolation.
+Fourteen mods, all loaded from a `patch` folder that never touches the game's own files. **This pack contains no game files** — you need your own copy of Pokémon Desolation.
 
 ## Requirements
 
@@ -29,6 +29,7 @@ To **uninstall**: delete `Data\Mods\AccessibilityLoader.rb` and the `patch\Mods`
 - **Battles** — every message, the command and fight menus, targeting in doubles, exact damage after every hit, and inspect keys for both sides of the field.
 - **The Accessible Summary** — a fully spoken summary of any Pokémon: stats with IVs and EVs, base stats, abilities, moves with descriptions, biology, and a team export. Ported from Lorenzo's Reborn mod (see credits).
 - **The bag** — pockets announce themselves, every item reads its description, and a TM tells you who in your party can learn it.
+- **The shop** — how many to buy, the price, what you already own, your money, and every message the shopkeeper says.
 - **The quest log** — tabs, full quest pages that never spoil unreached objectives, and spoken "Quest added / completed" updates on the map.
 - **The Pokédex** — entries read themselves, and a key reads the species' long biology description.
 - **The world** — footstep sounds that say what surface you are on, a where-am-I key, an event scanner that finds doors, people and items, pathfinding that walks you to them, and a Steam Audio 3D beacon that pauses itself during battles.
@@ -43,7 +44,7 @@ To **uninstall**: delete `Data\Mods\AccessibilityLoader.rb` and the `patch\Mods`
 | J and L | Select the previous or next thing on the map (doors, people, items); K says it again; P walks you to it |
 | Shift+B | 3D sound beacon guiding you to the selected thing; press again to stop |
 | K | On the party screen or in the PC: the Accessible Summary of that Pokémon — also the last entry of its action menu, after Cancel |
-| N | In the bag: the item's description. In a Pokédex entry: the species' biology |
+| N | In the bag or the shop: the item's description. In a Pokédex entry: the species' biology |
 | K (in battle) | Quick status of every Pokémon on the field |
 | Shift+K (in battle) | Weather, field effect, screens and hazards |
 | Q / W (in battle) | Your side / the enemy side in full: types, stat changes, ability, item, moves with exact PP |
@@ -66,7 +67,7 @@ If the game crashes with an error window, the text of that window is the single 
 ## For developers
 
 - The mods are in `patch/Mods`, one feature per file, heavily commented. The one file outside `patch` is `Data/Mods/AccessibilityLoader.rb`, because Desolation's engine only loads mods from `Data/Mods` — that bootstrap is what teaches it to load the patch folder, each mod crash-isolated.
-- `accessibility_tests/` holds twelve standalone test harnesses, over 600 checks total, runnable with plain Ruby and no game: `ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb` and so on. Run all of them after any edit.
+- `accessibility_tests/` holds thirteen standalone test harnesses, over 600 checks total, runnable with plain Ruby and no game: `ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb` and so on. Run all of them after any edit.
 - `tools/` holds helper scripts, including `build_biology.rb`, which regenerates `patch/biology.dat` from Lorenzo's `pokemon_biology.json`.
 - Landmines worth knowing before editing are documented in MANUAL.txt — among them: Desolation's stat arrays put **Speed last**, not third as standard Essentials does, and the game's embedded Ruby ships **no standard library**.
 

@@ -1605,7 +1605,13 @@ def reduceEventsInLanes(events_list)
        can_walk = false
     end
     
-    if next_tag == 4 || next_tag == 5 || next_tag == 26
+    # Tag 4 is NOT in this list, though Reborn's original had it. Desolation
+    # calls tag 4 "Rock" and paints ordinary cave FLOOR with it - 99% of the
+    # walkable tiles in the Mysterious Cave (the braille cave), both Waterfall
+    # Cave maps, Majira's Rest and Faraway Tunnel. Refusing it meant P and the
+    # beacon could not take one step in those caves (player reports). Real
+    # rock walls are already refused by the game's own passability above.
+    if next_tag == 5 || next_tag == 26
        can_walk = false
     end
 
