@@ -32,6 +32,7 @@ To **uninstall**: delete `Data\Mods\AccessibilityLoader.rb` and the `patch\Mods`
 - **The Accessible Summary** — a fully spoken summary of any Pokémon: stats with IVs and EVs, base stats, abilities, moves with descriptions, biology, and a team export. Its menu layout follows Lorenzo's accessible summary for Reborn (see credits).
 - **The bag** — pockets announce themselves, every item reads its description, and a TM tells you who in your party can learn it.
 - **The shop** — how many to buy, the price, what you already own, your money, and every message the shopkeeper says.
+- **Number entry** — digit-by-digit number boxes, like the Jinx-Scent's encounter rate, read the number and each digit as you change it.
 - **The quest log** — tabs, full quest pages that never spoil unreached objectives, and spoken "Quest added / completed" updates on the map.
 - **The Pokédex** — entries read themselves, and a key reads the species' long biology description.
 - **The world** — footstep sounds that say what surface you are on, a where-am-I key, an event scanner that finds doors, people and items, pathfinding that walks you to them, and a Steam Audio 3D beacon that pauses itself during battles.
@@ -69,7 +70,7 @@ If the game crashes with an error window, the text of that window is the single 
 ## For developers
 
 - The mods are in `patch/Mods`, one feature per file, heavily commented. The one file outside `patch` is `Data/Mods/AccessibilityLoader.rb`, because Desolation's engine only loads mods from `Data/Mods` — that bootstrap is what teaches it to load the patch folder, each mod crash-isolated.
-- `accessibility_tests/` holds thirteen standalone test harnesses, over 600 checks total, runnable with plain Ruby and no game: `ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb` and so on. Run all of them after any edit.
+- `accessibility_tests/` holds fourteen standalone test harnesses, over 600 checks total, runnable with plain Ruby and no game: `ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb` and so on. Run all of them after any edit.
 - `beacon_src/` holds the C source of `beacon.dll`, the 3D beacon's audio engine: a small wrapper around Steam Audio and miniaudio. `BUILD.txt` explains how to rebuild it.
 - `tools/` holds helper scripts, including `build_biology.rb`, which regenerates `patch/biology.dat` from Lorenzo's `pokemon_biology.json`.
 - Landmines worth knowing before editing are documented in MANUAL.txt — among them: Desolation's stat arrays put **Speed last**, not third as standard Essentials does, and the game's embedded Ruby ships **no standard library**.

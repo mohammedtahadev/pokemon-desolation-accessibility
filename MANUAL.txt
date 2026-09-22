@@ -223,6 +223,23 @@ the shop says went through its own text boxes and was silent. Now:
                        same key as in the bag.
 
 
+NUMBER ENTRY AND THE JINX-SCENT
+-------------------------------
+Some screens ask for a number digit by digit: LEFT and RIGHT pick a digit, UP
+and DOWN change it. The Jinx-Scent in the Pokegear works this way, and so do
+number questions asked by people in the world. Now:
+
+  When it opens    the whole number, how to use the box, and which digit is
+                   selected: "Selected: Ones, 0".
+  Up or down       the whole new number: "150".
+  Left or right    which digit you moved to and its value: "Tens, 5".
+
+The Jinx-Scent also says what its number means - the wild encounter rate in
+percent, where 100 is normal and 0 turns wild encounters off - and confirms
+what you set when you leave: "Encounter rate set to 200 percent" or "Wild
+encounters off".
+
+
 THE QUEST LOG
 -------------
 Opened from the Pokegear as before; the menu and the quest list already spoke.
@@ -851,6 +868,7 @@ The mods have a test suite that runs without launching the game:
   ruby test_bag.rb ../patch/Mods/AccessibilityBag.rb               17 checks
   ruby test_quests.rb ../patch/Mods/AccessibilityQuests.rb         19 checks
   ruby test_shop.rb ../patch/Mods/AccessibilityShop.rb             32 checks
+  ruby test_numbox.rb ../patch/Mods/AccessibilityMenus.rb          27 checks
   ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb      125 checks
   ruby test_pathfind.rb ../patch/Mods/AccessibilityPathfind.rb     43 checks
   ruby test_names.rb ../patch/Mods/AccessibilityPathfindNames.rb   55 checks

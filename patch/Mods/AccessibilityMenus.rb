@@ -667,6 +667,107 @@ class PokemonPokedexScene
   end
 end
 
+# ---------------------------------------------------------------------------
+# The digit-by-digit NUMBER BOX (Window_InputNumberPokemon). Every number the
+# game asks for this way - the Jinx-Scent's encounter rate, an event's "Input
+# Number", pbMessageChooseNumber - draws its digits into a bitmap: LEFT and
+# RIGHT pick a digit, UP and DOWN change it, and nothing was spoken (a player
+# report: "the Jinx-Scent does not speak the numbers"). The box is hooked
+# itself, so every screen that uses it speaks:
+#   when it opens   the whole number, then how to use it, and which digit is
+#                   selected
+#   up / down       the whole new number
+#   left / right    which digit is now selected, and its value: "Tens, 5"
+# ---------------------------------------------------------------------------
+module A11yNumberBox
+  PLACES = ["Ones", "Tens", "Hundreds", "Thousands", "Ten thousands",
+            "Hundred thousands", "Millions", "Ten millions", "Hundred millions"]
+
+  class << self
+    # Set by a screen that knows what the number MEANS; read once on open.
+    attr_accessor :label
+
+    def say(text, interrupt: true)
+      return unless defined?(AccessibilitySpeech)
+      AccessibilitySpeech.speak(text.to_s, true, interrupt: interrupt)
+    rescue Exception
+      nil
+    end
+
+    # "Hundreds, 1" for the digit the cursor is on (index counts from the
+    # left, and includes the +/- sign position when the box has one).
+    def selected(win)
+      digits_max = win.instance_variable_get(:@digits_max).to_i
+      sign = win.instance_variable_get(:@sign)
+      idx = win.instance_variable_get(:@index).to_i
+      if sign && idx == 0
+        return win.instance_variable_get(:@negative) ? "Sign, minus" : "Sign, plus"
+      end
+      pos = idx - (sign ? 1 : 0)                       # 0 = leftmost digit
+      from_right = digits_max - 1 - pos
+      digit = sprintf("%0*d", digits_max, win.instance_variable_get(:@number).to_i.abs)[pos, 1]
+      "#{PLACES[from_right] || "Digit #{pos + 1}"}, #{digit}"
+    rescue Exception
+      nil
+    end
+  end
+end
+
+if defined?(Window_InputNumberPokemon) && Window_InputNumberPokemon.method_defined?(:update)
+  class Window_InputNumberPokemon
+    unless method_defined?(:a11y_numbox_update)
+      alias_method :a11y_numbox_update, :update
+      def update
+        before = [@number, @negative, @index]
+        a11y_numbox_update
+        begin
+          return unless self.active
+          if !@a11y_announced
+            @a11y_announced = true
+            label = A11yNumberBox.label
+            A11yNumberBox.label = nil
+            parts = []
+            parts << label if label && !label.to_s.empty?
+            parts << "Number: #{self.number}."
+            parts << "Up and down change the selected digit, left and right move between digits. C confirms, B cancels."
+            sel = A11yNumberBox.selected(self)
+            parts << "Selected: #{sel}." if sel
+            # Queued: the question that opened the box is usually still being read.
+            A11yNumberBox.say(parts.join(" "), interrupt: false)
+          elsif before[0] != @number || before[1] != @negative
+            A11yNumberBox.say(self.number.to_s)
+          elsif before[2] != @index
+            sel = A11yNumberBox.selected(self)
+            A11yNumberBox.say(sel) if sel
+          end
+        rescue Exception
+        end
+      end
+    end
+  end
+end
+
+# The Jinx-Scent (Pokegear): says what the number means, and what was set.
+if defined?(Scene_EncounterRate) && Scene_EncounterRate.method_defined?(:main)
+  class Scene_EncounterRate
+    unless method_defined?(:a11y_jinx_main)
+      alias_method :a11y_jinx_main, :main
+      def main
+        A11yNumberBox.label = "Jinx Scent: wild encounter rate, in percent. 100 is normal, " \
+                              "higher means more wild Pokemon, 0 turns wild encounters off."
+        a11y_jinx_main
+        begin
+          rate = ($game_variables[:EncounterRateModifier].to_f * 100).round
+          A11yNumberBox.say(rate == 0 ? "Wild encounters off." : "Encounter rate set to #{rate} percent.")
+        rescue Exception
+        end
+      ensure
+        A11yNumberBox.label = nil
+      end
+    end
+  end
+end
+
 # Mods load in alphabetical order, so THIS file is loaded BEFORE
 # AccessibilitySpeech.rb defines the module. Every hook above only reaches for
 # it from inside a method body (by which time both files are loaded), and this
