@@ -4,7 +4,7 @@ Screen-reader accessibility mods for [Pokémon Desolation](https://desolation.fa
 
 Made by **Mohammed Taha** ([mohammedtahadev](https://github.com/mohammedtahadev)).
 
-Fourteen mods, all loaded from a `patch` folder that never touches the game's own files. **This pack contains no game files** — you need your own copy of Pokémon Desolation.
+Fifteen mods, all loaded from a `patch` folder that never touches the game's own files. **This pack contains no game files** — you need your own copy of Pokémon Desolation.
 
 ## Requirements
 
@@ -32,6 +32,8 @@ To **uninstall**: delete `Data\Mods\AccessibilityLoader.rb` and the `patch\Mods`
 - **The Accessible Summary** — a fully spoken summary of any Pokémon: stats with IVs and EVs, base stats, abilities, moves with descriptions, biology, and a team export. Its menu layout follows Lorenzo's accessible summary for Reborn (see credits).
 - **The bag** — pockets announce themselves, every item reads its description, and a TM tells you who in your party can learn it.
 - **The shop** — how many to buy, the price, what you already own, your money, and every message the shopkeeper says.
+- **Reputations** — Desolation tracks how eleven characters feel about you. **R** reads the reputation of whoever is speaking, **Shift+R** the whole list, and any change is spoken and shown in a pop-up as it happens.
+- **Choosing a save file** — the title screen's save-file list reads each file, its position and when it was saved.
 - **Number entry** — digit-by-digit number boxes, like the Jinx-Scent's encounter rate, read the number and each digit as you change it.
 - **The quest log** — tabs, full quest pages that never spoil unreached objectives, and spoken "Quest added / completed" updates on the map.
 - **The Pokédex** — entries read themselves, and a key reads the species' long biology description.
@@ -48,6 +50,7 @@ To **uninstall**: delete `Data\Mods\AccessibilityLoader.rb` and the `patch\Mods`
 | Shift+B | 3D sound beacon guiding you to the selected thing; press again to stop |
 | K | On the party screen or in the PC: the Accessible Summary of that Pokémon — also the last entry of its action menu, after Cancel |
 | N | In the bag or the shop: the item's description. In a Pokédex entry: the species' biology |
+| R | The reputation of whoever is speaking; Shift+R for the whole list |
 | K (in battle) | Quick status of every Pokémon on the field |
 | Shift+K (in battle) | Weather, field effect, screens and hazards |
 | Q / W (in battle) | Your side / the enemy side in full: types, stat changes, ability, item, moves with exact PP |
@@ -70,7 +73,7 @@ If the game crashes with an error window, the text of that window is the single 
 ## For developers
 
 - The mods are in `patch/Mods`, one feature per file, heavily commented. The one file outside `patch` is `Data/Mods/AccessibilityLoader.rb`, because Desolation's engine only loads mods from `Data/Mods` — that bootstrap is what teaches it to load the patch folder, each mod crash-isolated.
-- `accessibility_tests/` holds fourteen standalone test harnesses, over 600 checks total, runnable with plain Ruby and no game: `ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb` and so on. Run all of them after any edit.
+- `accessibility_tests/` holds fifteen standalone test harnesses, over 600 checks total, runnable with plain Ruby and no game: `ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb` and so on. Run all of them after any edit.
 - `beacon_src/` holds the C source of `beacon.dll`, the 3D beacon's audio engine: a small wrapper around Steam Audio and miniaudio. `BUILD.txt` explains how to rebuild it.
 - `tools/` holds helper scripts, including `build_biology.rb`, which regenerates `patch/biology.dat` from Lorenzo's `pokemon_biology.json`.
 - Landmines worth knowing before editing are documented in MANUAL.txt — among them: Desolation's stat arrays put **Speed last**, not third as standard Essentials does, and the game's embedded Ruby ships **no standard library**.

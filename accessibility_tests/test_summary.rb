@@ -23,15 +23,27 @@ module PBStatuses
   SLEEP = 1; POISON = 2; BURN = 3; PARALYSIS = 4; FROZEN = 5
 end
 module PBNatures
-  def self.getName(n); { 5 => "Bold" }[n]; end
+  # Desolation's real one indexes an array, so a Symbol raises. If the mod
+  # ever calls this with a nature again, these tests fail.
+  def self.getName(n)
+    raise TypeError, "no implicit conversion of Symbol into Integer" if n.is_a?(Symbol)
+    ["Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold"][n]
+  end
 end
+
+# Stat indexes: 0 HP, 1 Attack, 2 Defense, 3 Special Attack, 4 Special
+# Defense, 5 Speed - Desolation's order.
+NatureData = Struct.new(:name, :incStat, :decStat)
+def getNatureName(sym); ($cache.natures[sym] && $cache.natures[sym].name).to_s; end
 
 MonData = Struct.new(:name, :dexnum, :kind, :Type1, :Type2, :dexentry, :BaseStats)
 ItemData = Struct.new(:name, :desc)
 MoveData = Struct.new(:name, :type, :category, :basedamage, :accuracy, :desc)
 class CacheStub
-  attr_reader :pkmn, :items, :moves
+  attr_reader :pkmn, :items, :moves, :natures
   def initialize
+    @natures = { :BOLD => NatureData.new("Bold", 2, 1),        # Defense up, Attack down
+                 :HARDY => NatureData.new("Hardy", 0, 0) }     # neutral
     @pkmn = { :GROWLITHE => MonData.new("Growlithe", 58, "Puppy", :FIRE, nil,
                                         "It is very protective of its territory.",
                                         [55, 70, 45, 70, 50, 60]) }
@@ -51,7 +63,7 @@ class FakePokemon
                 :hp, :totalhp, :attack, :defense, :spatk, :spdef, :speed,
                 :happiness, :moves, :ot, :obtainLevel, :eggsteps
   def initialize
-    @name = "Growlithe"; @species = :GROWLITHE; @level = 14; @nature = 5
+    @name = "Growlithe"; @species = :GROWLITHE; @level = 14; @nature = :BOLD
     @ability = :INTIMIDATE; @item = :ORANBERRY; @status = PBStatuses::PARALYSIS
     @hp = 30; @totalhp = 41; @attack = 22; @defense = 17; @spatk = 21
     @spdef = 16; @speed = 19; @happiness = 120
@@ -170,8 +182,13 @@ check joined.include?("Fire type."), "a single type reads alone"
 check joined.include?("Level 14."), "level"
 check joined.include?("Male."), "gender"
 check joined.include?("Shiny."), "shininess"
-check joined.include?("Bold nature."), "the nature by name"
+check joined.include?("Bold nature: Defense up, Attack down."),
+      "the nature reads by name, with the stats it raises and lowers"
 check joined.include?("Currently paralyzed."), "the status condition"
+pkmn.nature = :HARDY
+check A11ySummary.lines_for(pkmn).include?("Hardy nature, no stat changes."),
+      "a neutral nature says it changes nothing"
+pkmn.nature = :BOLD
 check joined.include?("HP 30 of 41."), "current HP"
 check joined.include?("Attack 22, Defense 17."), "physical stats"
 check joined.include?("Special Attack 21, Special Defense 16."), "special stats"
@@ -352,7 +369,8 @@ def spoken_texts; $spoken.map(&:first); end
 
 # ── The view builders ───────────────────────────────────────────────────────
 sd = A11ySummary.stat_detail_lines(pkmn)
-check sd.include?("Bold nature."), "the stats view opens with the nature"
+check sd.include?("Bold nature: Defense up, Attack down."),
+      "the stats view opens with the nature"
 check sd.include?("HP: 41 total. IV 31, EV 4."), "HP with its IV and EV"
 check sd.include?("Attack: 22 total. IV 20, EV 252."), "Attack likewise"
 check sd.include?("Special Attack: 21 total. IV 31, EV 0."),

@@ -668,6 +668,72 @@ class PokemonPokedexScene
 end
 
 # ---------------------------------------------------------------------------
+# THE SAVE FILE LIST on the title screen ("Choose Save File"). The files are
+# drawn as panels with their names painted onto a bitmap, and the highlight is
+# moved by a hand-rolled input loop - so switching between save files was
+# silent (a player report). The scene's two drawing methods carry everything
+# needed: the list when it opens, and the new file each time you move.
+#
+# Each entry is [number, name, ..., saved time, filename], where the name is
+# already the readable "Save Slot 3 - Ash, 4 badges" the game paints.
+# ---------------------------------------------------------------------------
+module A11ySaveFiles
+  class << self
+    def say(text, interrupt: true)
+      return unless defined?(AccessibilitySpeech)
+      AccessibilitySpeech.speak(text.to_s, true, interrupt: interrupt)
+    rescue Exception
+      nil
+    end
+
+    def entry_line(files, index)
+      return nil unless files && files[index]
+      f = files[index]
+      name = f[1].to_s.strip
+      name = "Save file #{index + 1}" if name.empty?
+      line = "#{name}, #{index + 1} of #{files.length}"
+      saved = f[4]
+      line += ". Saved #{saved}" if saved && !saved.to_s.strip.empty?
+      line + "."
+    rescue Exception
+      nil
+    end
+  end
+end
+
+if defined?(PokemonLoadScene)
+  class PokemonLoadScene
+    if method_defined?(:pbDrawSaveCommands) && !method_defined?(:a11y_draw_save_commands)
+      alias_method :a11y_draw_save_commands, :pbDrawSaveCommands
+      def pbDrawSaveCommands(savefiles)
+        r = a11y_draw_save_commands(savefiles)
+        begin
+          n = savefiles ? savefiles.length : 0
+          A11ySaveFiles.say("Other save files: #{n}. Up and down choose one, C loads it, B goes back.")
+          first = A11ySaveFiles.entry_line(savefiles, 0)
+          A11ySaveFiles.say(first, interrupt: false) if first
+        rescue Exception
+        end
+        r
+      end
+    end
+
+    if method_defined?(:pbMoveSaveSel) && !method_defined?(:a11y_move_save_sel)
+      alias_method :a11y_move_save_sel, :pbMoveSaveSel
+      def pbMoveSaveSel(index)
+        r = a11y_move_save_sel(index)
+        begin
+          line = A11ySaveFiles.entry_line(@savefiles, index)
+          A11ySaveFiles.say(line) if line
+        rescue Exception
+        end
+        r
+      end
+    end
+  end
+end
+
+# ---------------------------------------------------------------------------
 # The digit-by-digit NUMBER BOX (Window_InputNumberPokemon). Every number the
 # game asks for this way - the Jinx-Scent's encounter rate, an event's "Input
 # Number", pbMessageChooseNumber - draws its digits into a bitmap: LEFT and

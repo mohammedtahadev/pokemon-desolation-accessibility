@@ -99,6 +99,14 @@ class Scene_EncounterRate
   end
 end
 
+# The title screen's save-file list, shaped like Load.rb's PokemonLoadScene:
+# entries are [number, name, ..., saved time, filename].
+class PokemonLoadScene
+  attr_reader :savefiles, :moved
+  def pbDrawSaveCommands(savefiles); @savefiles = savefiles; $drawn = true; end
+  def pbMoveSaveSel(index); @moved = index; end
+end
+
 mod = File.expand_path(ARGV[0] || "../patch/Mods/AccessibilityMenus.rb")
 ok = true
 begin
@@ -176,6 +184,35 @@ $jinx_script = [:none, :left, :left, :down, :none]     # 100 -> 000
 $spoken = []
 Scene_EncounterRate.new.main
 check_eq said.last, "Wild encounters off.", "setting 0 says wild encounters are off"
+
+
+# ── The save file list ──────────────────────────────────────────────────────
+FILES = [[1, "Save Slot 1 - Ash, 4 badges", false, true, "Mon 22 Sep 10:00", "Game.rxdata"],
+         [2, "Save Slot 2 - Rosa, 1 badge", false, true, "Sun 21 Sep 18:30", "Game_2.rxdata"],
+         [3, "Anna's Wish - Anna", false, true, nil, "Anna's Wish 1.rxdata"]]
+load_scene = PokemonLoadScene.new
+$spoken = []
+$drawn = false
+load_scene.pbDrawSaveCommands(FILES)
+check $drawn, "the real list is still drawn"
+check said.first.to_s.start_with?("Other save files: 3."), "opening says how many save files there are"
+check said.first.to_s.include?("Up and down choose one"), "and how to use the list"
+check_eq said[1], "Save Slot 1 - Ash, 4 badges, 1 of 3. Saved Mon 22 Sep 10:00.",
+         "then the first file: its name, its position, and when it was saved"
+check_eq $spoken[1][1], false, "queued behind the header"
+
+$spoken = []
+load_scene.pbMoveSaveSel(1)
+check_eq load_scene.moved, 1, "moving still moves the real highlight"
+check_eq said, ["Save Slot 2 - Rosa, 1 badge, 2 of 3. Saved Sun 21 Sep 18:30."],
+         "each file is read as you move to it"
+$spoken = []
+load_scene.pbMoveSaveSel(2)
+check_eq said, ["Anna's Wish - Anna, 3 of 3."],
+         "a file with no saved time simply leaves it out"
+$spoken = []
+load_scene.pbMoveSaveSel(9)
+check $spoken.empty?, "an index with no file says nothing rather than crashing"
 
 # ── Reloading ───────────────────────────────────────────────────────────────
 ok = true

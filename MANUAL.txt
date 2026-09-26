@@ -8,7 +8,7 @@ whole mod system), so one bootstrap must stay there; it is what loads
 patch\Mods. Delete it and the entire accessibility system goes dead.
 
   Data\Mods\AccessibilityLoader.rb   the bootstrap - the one file outside patch
-  patch\Mods\                        the fourteen mods below, plus any of yours
+  patch\Mods\                        the fifteen mods below, plus any of yours
   patch\lib\                         beacon.dll and phonon.dll (Steam Audio)
   patch\audio\                       beacon.wav, arrive.ogg, tile_sounds\
   patch\biology.dat                  the biology database for the summary
@@ -28,6 +28,7 @@ backup back to AccessibilitySpeech.rb in Data\Mods.
   AccessibilityPathfind.rb        event scanning, pathfinding and auto-walk
   AccessibilityPathfindNames.rb   real names for the events in that list
   AccessibilityQuests.rb          the quest log, and spoken quest updates
+  AccessibilityRelationships.rb   reputations: R, and pop-ups when they change
   AccessibilityShop.rb            the shop: how many, messages, money
   AccessibilitySpeech.rb          the speech engine (NVDA) and speaker names
   AccessibilitySummary.rb         the Accessible Summary menu entry and K
@@ -43,6 +44,7 @@ KEYS
   Shift+B  Start or stop the 3D beacon guiding you to the selected target
   K        On the party screen or in the PC: the Accessible Summary menu of
            that Pokemon (also the LAST entry of its action menu, after Cancel)
+  R        The reputation of whoever is speaking; Shift+R for the whole list
   N        In the bag or the shop: read the selected item's description
            In a Pokedex entry: read the species' biology
 
@@ -238,6 +240,38 @@ The Jinx-Scent also says what its number means - the wild encounter rate in
 percent, where 100 is normal and 0 turns wild encounters off - and confirms
 what you set when you leave: "Encounter rate set to 200 percent" or "Wild
 encounters off".
+
+
+REPUTATIONS - HOW PEOPLE FEEL ABOUT YOU
+---------------------------------------
+Desolation quietly keeps a number for your standing with Nova, Shiv, Scar,
+Ava, Connor, Tristan, Amelia, Rosetta, Aurora, Aaron and Garret, and for the
+Cellia Fight Club. The game never shows those numbers and never says when one
+moves.
+
+  R          the reputation of whoever is speaking. If nobody is speaking, or
+             that character has no reputation of their own, you get the whole
+             list instead.
+  Shift+R    always the whole list, best standing first. Characters still at
+             zero are left out - you have not met them yet, or nothing has
+             happened.
+
+When a number changes you hear it at once - "Connor reputation up 1, now 6" -
+and the game's own drop-down window shows the same words, so a sighted player
+watching sees it too. A change during a cutscene waits for the dialogue to
+finish rather than fighting it for the screen.
+
+The characters come from the game's own variable names, so a reputation added
+by a later version of Desolation is picked up without changing this mod.
+
+
+CHOOSING A SAVE FILE
+--------------------
+The title screen's "Choose Save File" list draws its file names as pictures,
+so switching between save files used to be silent. Now opening it says how
+many files there are and how to use the list, and every file reads itself as
+you move to it: its name - which already includes the trainer and badges the
+game shows - its position in the list, and when it was last saved.
 
 
 THE QUEST LOG
@@ -868,7 +902,8 @@ The mods have a test suite that runs without launching the game:
   ruby test_bag.rb ../patch/Mods/AccessibilityBag.rb               17 checks
   ruby test_quests.rb ../patch/Mods/AccessibilityQuests.rb         19 checks
   ruby test_shop.rb ../patch/Mods/AccessibilityShop.rb             32 checks
-  ruby test_numbox.rb ../patch/Mods/AccessibilityMenus.rb          27 checks
+  ruby test_numbox.rb ../patch/Mods/AccessibilityMenus.rb          36 checks
+  ruby test_relationships.rb ../patch/Mods/AccessibilityRelationships.rb  29 checks
   ruby test_summary.rb ../patch/Mods/AccessibilitySummary.rb      125 checks
   ruby test_pathfind.rb ../patch/Mods/AccessibilityPathfind.rb     43 checks
   ruby test_names.rb ../patch/Mods/AccessibilityPathfindNames.rb   55 checks
@@ -904,7 +939,7 @@ AccessibilitySpeech at load time crashes the game on startup. That has already
 happened once for real, and none of the other harnesses can see it, because
 they each load one mod at a time.
 
-Run all thirteen after any edit.
+Run all fifteen after any edit.
 
 CREDITS
 -------

@@ -71,6 +71,37 @@ module A11ySummary
       ""
     end
 
+    # A Pokemon's NATURE, by name, plus what it does to its stats.
+    # Desolation stores the nature as a SYMBOL (:BOLD) - a key of
+    # $cache.natures - while PBNatures.getName expects an INDEX, so calling it
+    # raised and the nature line was silently dropped from every readout (a
+    # player report). getNatureName is the game's own symbol-to-name helper;
+    # incStat and decStat are stat indexes into STAT_LABELS.
+    def nature_text(pkmn)
+      sym = (pkmn.nature rescue nil)
+      return nil if sym.nil?
+      data = ($cache.natures[sym] rescue nil)
+      name = begin
+        n = getNatureName(sym)
+        (n.nil? || n.to_s.empty?) ? nil : n.to_s
+      rescue Exception
+        nil
+      end
+      name ||= (data.name.to_s rescue nil)
+      name = nil if name && name.empty?
+      name ||= sym.to_s.capitalize if sym.is_a?(Symbol)
+      return nil if name.nil? || name.empty?
+      inc = (data.incStat rescue nil)
+      dec = (data.decStat rescue nil)
+      if inc && dec && inc != dec && STAT_LABELS[inc] && STAT_LABELS[dec]
+        "#{name} nature: #{STAT_LABELS[inc]} up, #{STAT_LABELS[dec]} down."
+      else
+        "#{name} nature, no stat changes."
+      end
+    rescue Exception
+      nil
+    end
+
     # Every known move as rows: the full line (name, type, category, power,
     # accuracy, PP) followed by the move's description as its own row.
     def move_lines(pkmn)
@@ -144,8 +175,8 @@ module A11ySummary
       rescue Exception
       end
       begin
-        n = PBNatures.getName(pkmn.nature)
-        lines << "#{n} nature." if n
+        nt = nature_text(pkmn)
+        lines << nt if nt
       rescue Exception
       end
       begin
@@ -525,8 +556,8 @@ module A11ySummary
     def page_memo(pkmn)
       lines = ["Trainer memo page."]
       begin
-        n = PBNatures.getName(pkmn.nature)
-        lines << "#{n} nature." if n
+        nt = nature_text(pkmn)
+        lines << nt if nt
       rescue Exception
       end
       begin
@@ -778,8 +809,8 @@ module A11ySummary
     def stat_detail_lines(pkmn)
       lines = []
       begin
-        n = PBNatures.getName(pkmn.nature)
-        lines << "#{n} nature." if n
+        nt = nature_text(pkmn)
+        lines << nt if nt
       rescue Exception
       end
       begin
@@ -899,7 +930,8 @@ module A11ySummary
           lv = begin; poke.level; rescue Exception; nil; end
           f.write("Level: #{lv}\n") if lv
           f.write("Shiny: Yes\n") if (poke.isShiny? rescue false)
-          n = begin; PBNatures.getName(poke.nature); rescue Exception; nil; end
+          n = begin; getNatureName(poke.nature); rescue Exception; nil; end
+          n = nil if n.to_s.empty?
           f.write("#{n} Nature\n") if n
           # Desolation's array order is HP, Atk, Def, SpAtk, SpDef, Speed.
           ev = Array(begin; poke.ev; rescue Exception; []; end)
