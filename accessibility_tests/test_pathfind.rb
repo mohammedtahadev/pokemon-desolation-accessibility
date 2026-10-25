@@ -197,6 +197,22 @@ rescue Exception => e
 end
 check ok2, "a second load does not recurse (guards hold)"
 
+# A soft reset also builds a FRESH player (new map, Continue). initialize is
+# PRIVATE, so a guard that only asks method_defined? never fires and the
+# alias ends up pointing at this mod's own initialize - which then calls
+# itself forever. The player report that found this was in Reborn; the same
+# code is here.
+ok3 = true
+begin
+  load mod
+  fresh = Game_Player.new
+  fresh.x = 4
+rescue Exception => e
+  ok3 = false
+  puts "        #{e.class}: #{e.message}"
+end
+check ok3, "and a fresh player can still be created after reloading (private-method guard)"
+
 # ---------------------------------------------------------------- filters
 check PraSession.event_filter_modes.include?(:pois),
       "the points-of-interest filter arrived with the newer version"

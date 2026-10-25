@@ -227,7 +227,12 @@ class Game_Player < Game_Character
     end
   end
 
-  unless method_defined?(:access_mod_original_initialize)
+  # initialize is PRIVATE in Ruby, and method_defined? ignores private
+  # methods - so asking it alone never fires here, the alias is re-made on
+  # every F12 reload, and it then points at this file's own previous
+  # definition: initialize calling itself forever. Ask both.
+  unless method_defined?(:access_mod_original_initialize) ||
+         private_method_defined?(:access_mod_original_initialize)
     alias_method :access_mod_original_initialize, :initialize
   end
   def initialize(*args)
